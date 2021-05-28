@@ -1,0 +1,4 @@
+[submodule "NetTopologySuite"]
+	path = NetTopologySuite
+	url = https://github.com/NetTopologySuite/NetTopologySuite.git
+	branch = enhancement/curved
