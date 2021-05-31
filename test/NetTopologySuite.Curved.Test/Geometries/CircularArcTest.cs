@@ -55,7 +55,7 @@ namespace NetTopologySuite.Test.Geometries
             // Act
             var ca = new CircularArc(p0, p1, p2);
 
-            var flattened = ca.Linearize(arcSegmentLength);
+            var flattened = ca.Flatten(arcSegmentLength);
             var geom = NtsGeometryServices.Instance.CreateGeometryFactory(pm)
                 .CreateLineString(flattened.ToCoordinateArray());
 
