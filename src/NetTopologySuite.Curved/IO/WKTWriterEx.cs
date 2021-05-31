@@ -64,11 +64,10 @@ namespace NetTopologySuite.IO
             var ordinateFormat = CreateOrdinateFormat(precisionModel);
 
             // evaluate the ordinates actually present in the geometry
-            var cof = new CheckOrdinatesFilter(OutputOrdinates, AlwaysEmitZWithM);
-            geometry.Apply(cof);
+            var outputOrdinates = GetOutputOrdinates(geometry);
 
             // append the WKT
-            AppendCurvedGeometryTaggedText(geometry, cof.OutputOrdinates, useFormatting, 0, writer, ordinateFormat);
+            AppendCurvedGeometryTaggedText(geometry, outputOrdinates, useFormatting, 0, writer, ordinateFormat);
         }
 
         private void AppendCurvedGeometryTaggedText(Geometry geometry, Ordinates outputOrdinates, bool useFormatting,
