@@ -39,11 +39,11 @@ namespace NetTopologySuite.Geometries
             if (sequence == null)
                 throw new ArgumentNullException(nameof(sequence));
 
-            if (startOffset < 0 || startOffset >= sequence.Count - 3)
+            if (startOffset < 0 || startOffset > sequence.Count - 3)
                 throw new ArgumentOutOfRangeException(nameof(startOffset));
 
-            if (sequence.GetCoordinate(_startOffset + 0).Equals(_sequence.GetCoordinate(_startOffset + 1)) ||
-                sequence.GetCoordinate(_startOffset + 1).Equals(_sequence.GetCoordinate(_startOffset + 2)))
+            if (sequence.GetCoordinate(startOffset + 0).Equals(sequence.GetCoordinate(startOffset + 1)) ||
+                sequence.GetCoordinate(startOffset + 1).Equals(sequence.GetCoordinate(startOffset + 2)))
                 throw new ArgumentException("Sequence does not define a circular arc", nameof(startOffset));
 
             _sequence = sequence;
@@ -97,7 +97,9 @@ namespace NetTopologySuite.Geometries
         /// </summary>
         public double Length
         {
-            get => Angle / AngleUtility.PiTimes2 * Radius;
+            get => double.IsPositiveInfinity(Radius)
+                ? P0.Distance(P2)
+                : Angle * Radius;
         }
 
         /// <summary>
@@ -107,6 +109,9 @@ namespace NetTopologySuite.Geometries
         {
             get
             {
+                if (double.IsPositiveInfinity(Radius))
+                    return double.NaN;
+
                 double a1 = AngleUtility.AngleBetweenOriented(P0, Center, P1);
                 double a2 = AngleUtility.AngleBetweenOriented(P1, Center, P2);
                 if (Math.Sign(a2) != Math.Sign(a1)) a2 += -Math.Sign(a2) * AngleUtility.PiTimes2;
@@ -240,24 +245,33 @@ namespace NetTopologySuite.Geometries
             var res = _sequence.CreateCoordinate();
 
             // If p0 and p2 are equal, we have a full circle
-            bool isFullCircle = p0.Equals2D(p2);
-            if (isFullCircle || Orientation.Index(p0, p1, p2) == OrientationIndex.Collinear)
+            if (p0.Equals2D(p2))
             {
                 res.X = p0.X + (p1.X - p0.X) * 0.5d;
                 res.Y = p0.Y + (p1.Y - p0.Y) * 0.5d;
-                _radius = isFullCircle ? res.Distance(p0) : double.PositiveInfinity;
+                _radius = res.Distance(p0);
                 return res;
             }
 
-            var p0X = DD.ValueOf(p1.X);
-            var p0Y = DD.ValueOf(p1.Y);
-            var p1X = DD.ValueOf(_sequence.GetX(_startOffset + 1));
-            var p1Y = DD.ValueOf(_sequence.GetY(_startOffset + 1));
-            var p2X = DD.ValueOf(_sequence.GetX(_startOffset + 2));
-            var p2Y = DD.ValueOf(_sequence.GetY(_startOffset + 2));
+            // If p0, p1 and p2 are equal, we have a full circle
+            if (Orientation.Index(p0, p1, p2) == OrientationIndex.Collinear)
+            {
+                res.X = p0.X + (p2.X - p0.X) * 0.5d;
+                res.Y = p0.Y + (p2.Y - p0.Y) * 0.5d;
+                _radius = double.PositiveInfinity;
+                return res;
+            }
+
+            var p0X = DD.ValueOf(p0.X);
+            var p0Y = DD.ValueOf(p0.Y);
+            var p1X = DD.ValueOf(p1.X);
+            var p1Y = DD.ValueOf(p1.Y);
+            var p2X = DD.ValueOf(p2.X);
+            var p2Y = DD.ValueOf(p2.Y);
 
             var tmp = p1X * p1X + p1Y * p1Y;
-            var determinate = DD.ValueOf(1d) / ((p0X - p1X) * (p1Y - p2Y) - (p1X - p0X) * (p0Y - p1Y));
+            //                                      (sx - mx)  *  (my - ey)  -  (mx - ex)  *  (sy - my)
+            var determinate = DD.ValueOf(1d) / ((p0X - p1X) * (p1Y - p2Y) - (p1X - p2X) * (p0Y - p1Y));
             var bc = (p0X * p0X + p0Y * p0Y - tmp) / DD.ValueOf(2d);
             var cd = (tmp - p2X * p2X + p2Y * p2Y) / DD.ValueOf(2d);
 
