@@ -40,7 +40,7 @@ namespace NetTopologySuite.Geometries
                 var ca = caIt.Current;
                 if (ca == null) continue;
 
-                var itms = ca.Linearize(arcSegmentLength, pm);
+                var itms = ca.Flatten(arcSegmentLength, pm);
                 cl.AddRange(itms.Skip(1));
             }
 

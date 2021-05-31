@@ -99,7 +99,7 @@ namespace NetTopologySuite.Geometries
         {
             get => double.IsPositiveInfinity(Radius)
                 ? P0.Distance(P2)
-                : Angle * Radius;
+                : Math.Abs(Angle * Radius);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace NetTopologySuite.Geometries
         }
 
         /// <summary>
-        /// Gets a value indicating the 
+        /// Gets a value indicating the extent of this <see cref="CircularArc"/>
         /// </summary>
         public Envelope Envelope
         {
@@ -129,12 +129,12 @@ namespace NetTopologySuite.Geometries
         }
 
         /// <summary>
-        /// Create a 
+        /// Create a flattened version of this <see cref="CircularArc"/>
         /// </summary>
-        /// <param name="arcStepLength"></param>
-        /// <param name="precisionModel"></param>
-        /// <returns></returns>
-        public CoordinateList Linearize(double arcStepLength = 0d, PrecisionModel precisionModel = null)
+        /// <param name="arcStepLength">The maximum length of an arc segment</param>
+        /// <param name="precisionModel">A precision model</param>
+        /// <returns>A list of coordinates</returns>
+        public CoordinateList Flatten(double arcStepLength = 0d, PrecisionModel precisionModel = null)
         {
             if (_linearized != null && _linearized.TryGetTarget(out var coordinateList))
                 return coordinateList;
@@ -150,7 +150,9 @@ namespace NetTopologySuite.Geometries
             // If this is arc is collinear, just return the 3 defining points
             if (_radius == double.PositiveInfinity)
             {
-                _linearized = new WeakReference<CoordinateList>(new CoordinateList {p0, p1, p2});
+                var res = new CoordinateList {p0, p1, p2};
+                _linearized = new WeakReference<CoordinateList>(res);
+                return res;
             }
 
             // Compute angles
@@ -187,14 +189,14 @@ namespace NetTopologySuite.Geometries
             var cl = new CoordinateList {p0};
 
             double angleStep = arcStepLength / Radius;
-            double angle = angleP0 + angleStep;
+            double angle = Math.Ceiling(angleP0 / angleStep) * angleStep;
 
             // Add points from p0 to p1
             double angleDelta = angleP1 - angleP0;
             while (angle < angleP1)
             {
                 var p = _sequence.CreateCoordinate();
-                p.X = precisionModel.MakePrecise(c.X + _radius * Math.Sin(angle));
+                p.X = precisionModel.MakePrecise(c.X + _radius * Math.Cos(angle));
                 p.Y = precisionModel.MakePrecise(c.Y + _radius * Math.Sin(angle));
                 cl.Add(Interpolate(p, p0, p1, (angle - angleP0) / angleDelta), false);
 
@@ -210,7 +212,7 @@ namespace NetTopologySuite.Geometries
             while (angle < angleP2)
             {
                 var p = _sequence.CreateCoordinate();
-                p.X = precisionModel.MakePrecise(c.X + _radius * Math.Sin(angle));
+                p.X = precisionModel.MakePrecise(c.X + _radius * Math.Cos(angle));
                 p.Y = precisionModel.MakePrecise(c.Y + _radius * Math.Sin(angle));
                 cl.Add(Interpolate(p, p0, p1, (angle - angleP1) / angleDelta), false);
 
