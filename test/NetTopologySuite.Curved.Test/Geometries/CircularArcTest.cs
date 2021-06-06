@@ -36,7 +36,7 @@ namespace NetTopologySuite.Test.Geometries
                 Assert.That(ca.Length, Is.EqualTo(Math.Sqrt(dx*dx+dy*dy)).Within(1e-10));
             }
             else
-                Assert.That(ca.Length, Is.EqualTo(angle * radius).Within(1e-7));
+                Assert.That(ca.Length, Is.EqualTo(Math.Abs(angle * radius)).Within(1e-7));
         }
 
         [TestCase(0, 10d, 7.0710678118654755d, 7.0710678118654755d, 10d, 0d, 0d, 10000d)]

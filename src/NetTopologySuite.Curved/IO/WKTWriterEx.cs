@@ -7,10 +7,6 @@ namespace NetTopologySuite.IO
 {
     public class WKTWriterEx : WKTWriter
     {
-        //private bool _skipOrdinateToken;
-        //private bool _alwaysEmitZWithM;
-        //private string _missingOrdinateReplacementText = "NaN";
-
         public WKTWriterEx ForSqlServer()
         {
             return new WKTWriterEx(4, true);}

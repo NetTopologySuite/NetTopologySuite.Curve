@@ -32,6 +32,9 @@ namespace NetTopologySuite.Geometries
 
         protected override LineString FlattenInternal(double arcSegmentLength)
         {
+            if (ControlPoints.Count == 0)
+                return Factory.CreateLineString();
+
             var cl = new CoordinateList {ControlPoints.GetCoordinate(0)};
             var caIt = new CircularArcEnumerator(ControlPoints);
             var pm = Factory.PrecisionModel;

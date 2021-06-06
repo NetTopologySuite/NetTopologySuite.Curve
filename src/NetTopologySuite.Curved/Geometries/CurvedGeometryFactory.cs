@@ -5,10 +5,18 @@ namespace NetTopologySuite.Geometries
 {
     public class CurvedGeometryFactory : GeometryFactoryEx
     {
+        /// <summary>
+        /// Creates an instance of this class using the provided arguments
+        /// </summary>
+        /// <param name="precisionModel">The precision model to use during computation</param>
+        /// <param name="srid">A spatial reference identifier</param>
+        /// <param name="coordinateSequenceFactory">The coordinate sequence factory to use when building sequences</param>
+        /// <param name="arcSegmentLength">A default arc segment length. A value of <c>0d</c> will lead to arc segment
+        /// length to be computed from <see cref="Operation.Buffer.BufferParameters.DefaultQuadrantSegments"/>.</param>
         public CurvedGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory, double arcSegmentLength)
             : base(precisionModel, srid, coordinateSequenceFactory)
         {
-            if (arcSegmentLength <= 0d)
+            if (arcSegmentLength < 0d)
                 throw new ArgumentOutOfRangeException(nameof(arcSegmentLength));
 
             ArcSegmentLength = arcSegmentLength;
