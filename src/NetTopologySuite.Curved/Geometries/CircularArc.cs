@@ -7,6 +7,16 @@ namespace NetTopologySuite.Geometries
 {
     public sealed class CircularArc
     {
+        /// <summary>
+        /// Radius value that indicates that a CircularString is actually a line
+        /// </summary>
+        public const double CollinearRadius = double.PositiveInfinity;
+
+        /// <summary>
+        /// Angle value that indicates that a CircularString is actually a line
+        /// </summary>
+        public const double CollinearAngle = double.NaN;
+
         private readonly int _startOffset;
         private readonly CoordinateSequence _sequence;
 
@@ -42,9 +52,9 @@ namespace NetTopologySuite.Geometries
             if (startOffset < 0 || startOffset > sequence.Count - 3)
                 throw new ArgumentOutOfRangeException(nameof(startOffset));
 
-            if (sequence.GetCoordinate(startOffset + 0).Equals(sequence.GetCoordinate(startOffset + 1)) ||
-                sequence.GetCoordinate(startOffset + 1).Equals(sequence.GetCoordinate(startOffset + 2)))
-                throw new ArgumentException("Sequence does not define a circular arc", nameof(startOffset));
+            //if (sequence.GetCoordinate(startOffset + 0).Equals(sequence.GetCoordinate(startOffset + 1)) ||
+            //    sequence.GetCoordinate(startOffset + 1).Equals(sequence.GetCoordinate(startOffset + 2)))
+            //    throw new ArgumentException("Sequence does not define a circular arc", nameof(startOffset));
 
             _sequence = sequence;
             _startOffset = startOffset;
@@ -110,7 +120,7 @@ namespace NetTopologySuite.Geometries
             get
             {
                 if (double.IsPositiveInfinity(Radius))
-                    return double.NaN;
+                    return CollinearAngle;
 
                 double a1 = AngleUtility.AngleBetweenOriented(P0, Center, P1);
                 double a2 = AngleUtility.AngleBetweenOriented(P1, Center, P2);
@@ -205,7 +215,7 @@ namespace NetTopologySuite.Geometries
             }
 
             // Add middle point
-            cl.Add(p1, false);
+            cl.Add(p1, cl.Count == 1);
 
             // Add points from p1 to p2
             angleDelta = angleP2 - angleP1;
@@ -221,7 +231,7 @@ namespace NetTopologySuite.Geometries
             }
 
             // Add end point
-            cl.Add(p2, false);
+            cl.Add(p2, cl.Count == 2);
 
             if (isClockwise)
                 cl.Reverse();
@@ -260,7 +270,7 @@ namespace NetTopologySuite.Geometries
             {
                 res.X = p0.X + (p2.X - p0.X) * 0.5d;
                 res.Y = p0.Y + (p2.Y - p0.Y) * 0.5d;
-                _radius = double.PositiveInfinity;
+                _radius = CollinearRadius;
                 return res;
             }
 
@@ -275,7 +285,7 @@ namespace NetTopologySuite.Geometries
             //                                      (sx - mx)  *  (my - ey)  -  (mx - ex)  *  (sy - my)
             var determinate = DD.ValueOf(1d) / ((p0X - p1X) * (p1Y - p2Y) - (p1X - p2X) * (p0Y - p1Y));
             var bc = (p0X * p0X + p0Y * p0Y - tmp) / DD.ValueOf(2d);
-            var cd = (tmp - p2X * p2X + p2Y * p2Y) / DD.ValueOf(2d);
+            var cd = (tmp - p2X * p2X - p2Y * p2Y) / DD.ValueOf(2d);
 
             res.X = ((bc * (p1Y - p2Y) - cd * (p0Y - p1Y)) * determinate).ToDoubleValue();
             res.Y = (((p0X - p1X) * cd - (p1X - p2X) * bc)  * determinate).ToDoubleValue();
