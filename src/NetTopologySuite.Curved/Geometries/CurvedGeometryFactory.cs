@@ -22,8 +22,16 @@ namespace NetTopologySuite.Geometries
             ArcSegmentLength = arcSegmentLength;
         }
 
+        /// <summary>
+        /// Gets a value indicating the maximum arc segment length used by curved geometry when
+        /// flattening the geometry
+        /// </summary>
         public double ArcSegmentLength { get; }
 
+        /// <summary>
+        /// Creates a <c>CIRCULARSTRING EMPTY</c> geometry
+        /// </summary>
+        /// <returns>An empty <c>CIRCULARSTRING</c></returns>
         public CircularString CreateCircularString() => CreateCircularString((CoordinateSequence)null);
 
         public CircularString CreateCircularString(Coordinate[] coordinates)
@@ -52,14 +60,37 @@ namespace NetTopologySuite.Geometries
             if (linealGeometries == null)
                 linealGeometries = new Geometry[0];
 
+            Coordinate last = null;
             // Check for invalid types in linealGeometries
             for (int i = 0; i < linealGeometries.Length; i++)
             {
-                if (!(linealGeometries[i] is LineString ||
-                      linealGeometries[i] is CircularString))
+                if (linealGeometries[i] == null || linealGeometries[i].IsEmpty)
+                    throw new ArgumentException(
+                        $"linealGeometries contains null or empty geometry!",
+                        nameof(linealGeometries));
+
+                var ls = linealGeometries[i] as LineString;
+                var cs = linealGeometries[i] as CircularString;
+                if (ls == null && cs == null)
                     throw new ArgumentException(
                         $"linealGeometries contains geometry of invalid type: {linealGeometries[i].GeometryType}!",
                         nameof(linealGeometries));
+
+                // Check connectivity
+                if (last != null)
+                {
+                    var first = ls != null
+                        ? ls.CoordinateSequence.First()
+                        : cs.ControlPoints.First();
+
+                    if (Math.Abs(last.Distance(first)) > 5E-7)
+                        throw new ArgumentException("Geometries are not in a sequence", nameof(linealGeometries));
+                }
+
+                // Keep last for connectivity check
+                last = ls != null
+                    ? ls.CoordinateSequence.Last()
+                    : cs.ControlPoints.Last();
             }
 
             // Create geometry

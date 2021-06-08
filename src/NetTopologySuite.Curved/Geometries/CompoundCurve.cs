@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.Geometries
@@ -70,21 +71,53 @@ namespace NetTopologySuite.Geometries
             get => _geometries.Length == 0;
         }
 
+        public override double Length
+        {
+            get
+            {
+                return _geometries.Sum(t => t.Length);
+            }
+        }
+
         protected override LineString FlattenInternal(double arcSegmentLength)
         {
-            var ls = new Operation.Linemerge.LineSequencer();
-            for (int i = 0; i < _geometries.Length; i++)
+            if (IsEmpty)
+                return Factory.CreateLineString();
+
+            var flattened = new LineString[_geometries.Length];
+            int[] offset = new int[_geometries.Length];
+
+            int numPoints = 0;
+            Coordinate last = null;
+            for (int i = 0; i < flattened.Length; i++)
             {
-                if (_geometries[i] is CircularString curve)
-                    ls.Add(curve.Flatten());
-                else if (_geometries[i] is LineString line)
-                    ls.Add(line);
-                else
-                    Assert.ShouldNeverReachHere("Invalid geometry in CompoundCurve");
+                flattened[i] = _geometries[i] is CircularString cs
+                    ? cs.Flatten(arcSegmentLength)
+                    : (LineString) _geometries[i];
+
+                var sequence = flattened[i].CoordinateSequence;
+                numPoints += flattened[i].NumPoints;
+                if (last != null) {
+                    if (last.Equals(sequence.First())) {
+                        numPoints--;
+                        offset[i] = 1;
+                    } 
+                }
+
+                last = sequence.Last();
             }
 
-            Assert.IsTrue(ls.IsSequenceable());
-            return (LineString)ls.GetSequencedLineStrings();
+            var seq = Factory.CoordinateSequenceFactory.Create(numPoints, flattened[0].CoordinateSequence.Ordinates);
+            int tgtOffset = 0;
+            for (int i = 0; i < flattened.Length; i++)
+            {
+                var tmp = flattened[i].CoordinateSequence;
+                int count = tmp.Count - offset[i];
+                CoordinateSequences.Copy(tmp, offset[i], seq, tgtOffset, count);
+                tgtOffset += count;
+            }
+
+            return Factory.CreateLineString(seq);
         }
     }
 }

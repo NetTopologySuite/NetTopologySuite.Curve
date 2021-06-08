@@ -75,17 +75,16 @@ namespace NetTopologySuite.Test.Geometries
         /// <returns>A circular arc</returns>
         public CircularArc GetCircularArc(double startAngle, double midAngle, double endAngle)
         {
-            // Normalize arguments
+            // ToRadians arguments
             startAngle = AngleUtility.ToRadians(startAngle);
             midAngle = AngleUtility.ToRadians(midAngle);
             endAngle = AngleUtility.ToRadians(endAngle);
 
-            double minAngle = startAngle <= endAngle ? startAngle : endAngle;
-            double maxAngle = startAngle > endAngle ? startAngle : endAngle;
+            if (Math.Abs(AngleUtility.Normalize(startAngle) - AngleUtility.Normalize(midAngle)) < 1E-10)
+                throw new ArgumentException(nameof(midAngle));
 
-            // Check midAngle
-            if (midAngle < minAngle || maxAngle < midAngle)
-                throw new ArgumentOutOfRangeException(nameof(midAngle));
+            if (Math.Abs(AngleUtility.Normalize(midAngle) - AngleUtility.Normalize(endAngle)) < 1E-10)
+                throw new ArgumentException(nameof(midAngle));
 
             // Full Circle
             if (Math.Abs(AngleUtility.Normalize(startAngle) - AngleUtility.Normalize(endAngle)) < 1E-10)
