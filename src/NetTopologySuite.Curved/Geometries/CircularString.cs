@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace NetTopologySuite.Geometries
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public sealed class CircularString : CurvedLineString
     {
@@ -16,20 +19,32 @@ namespace NetTopologySuite.Geometries
             _controlPoints = points;
         }
 
+        /// <summary>
+        /// Gets a value indicating the control points of this <c>CircularString</c>.
+        /// </summary>
         public CoordinateSequence ControlPoints
         {
             get => _controlPoints;
         }
 
+        /// <summary>
+        /// Gets a value indicating the number of <c>CircularArc</c>s.
+        /// </summary>
         public int NumArcs { get => ControlPoints.Count == 0 ? 0 : (ControlPoints.Count - 1) / 2; }
 
-        public CircularArc GetArc(int index)
+        /// <summary>
+        /// Gets the <c>CircularArc</c> at <paramref name="index"/>.
+        /// </summary>
+        /// <param name="index">The index of the arc</param>
+        /// <returns>A <c>CircularArc</c></returns>
+        public CircularArc GetArcN(int index)
         {
             if (index < NumArcs)
                 return new CircularArc(ControlPoints, index * 2);
             throw new ArgumentOutOfRangeException(nameof(index), $"Must be less than {NumArcs}");
         }
 
+        /// <inheritdoc cref="FlattenInternal"/>
         protected override LineString FlattenInternal(double arcSegmentLength)
         {
             if (ControlPoints.Count == 0)
@@ -50,21 +65,26 @@ namespace NetTopologySuite.Geometries
             return Factory.CreateLineString(cl.ToCoordinateArray());
         }
 
+        /// <inheritdoc cref="IsEmpty"/>
         public override bool IsEmpty
         {
             get => ControlPoints.Count == 0;
         }
 
+        /// <inheritdoc cref="ReverseInternal"/>
         protected override Geometry ReverseInternal()
         {
             var seq = _controlPoints.Reversed();
             return new CircularString(seq, (CurvedGeometryFactory)Factory, ArcSegmentLength);
         }
 
+        /// <inheritdoc cref="GeometryType"/>
         public override string GeometryType => CurvedGeometry.TypeNameCircularString;
 
+        /// <inheritdoc cref="OgcGeometryType"/>
         public override OgcGeometryType OgcGeometryType => OgcGeometryType.CircularString;
 
+        /// <inheritdoc cref="InteriorPoint"/>
         public override Point InteriorPoint
         {
             get
@@ -75,6 +95,7 @@ namespace NetTopologySuite.Geometries
             }
         }
 
+        /// <inheritdoc cref="ComputeEnvelopeInternal"/>
         protected override Envelope ComputeEnvelopeInternal()
         {
             var env = new Envelope();
@@ -89,6 +110,61 @@ namespace NetTopologySuite.Geometries
             return env;
         }
 
+        /// <inheritdoc cref="CompareToSameClass(object)"/>
+        protected internal override int CompareToSameClass(object o)
+        {
+            if (!(o is ICurve))
+                throw new ArgumentException("Not a Curve", nameof(o));
+
+            if (o is CircularString cs)
+            {
+                for (int i = 0; i < _controlPoints.Count; i++)
+                {
+                    int comparison = _controlPoints.GetCoordinate(i).CompareTo(cs.ControlPoints.GetCoordinate(i));
+                    if (comparison != 0)
+                        return comparison;
+                }
+
+                return _controlPoints.Count.CompareTo(cs.ControlPoints.Count);
+            }
+
+            if (o is CompoundCurve cc)
+                return Flatten().CompareToSameClass(cc.Flatten());
+
+            if (o is LineString ls)
+                Flatten().CompareToSameClass(ls);
+
+            throw new ArgumentException("Invalid type", nameof(o));
+        }
+
+        /// <inheritdoc cref="CompareToSameClass(object, IComparer{CoordinateSequence})"/>
+        protected internal override int CompareToSameClass(object o, IComparer<CoordinateSequence> comparer)
+        {
+            if (!(o is ICurve))
+                throw new ArgumentException("Not a Curve", nameof(o));
+
+            if (o is CircularString cs)
+            {
+                for (int i = 0; i < _controlPoints.Count; i++)
+                {
+                    int comparison = comparer.Compare(_controlPoints, cs.ControlPoints);
+                    if (comparison != 0)
+                        return comparison;
+                }
+
+                return _controlPoints.Count.CompareTo(cs.ControlPoints.Count);
+            }
+
+            if (o is CompoundCurve cc)
+                return Flatten().CompareToSameClass(cc.Flatten());
+
+            if (o is LineString ls)
+                Flatten().CompareToSameClass(ls);
+
+            throw new ArgumentException("Invalid type", nameof(o));
+        }
+
+        /// <inheritdoc cref="EqualsExact"/>
         public override bool EqualsExact(Geometry other, double tolerance)
         {
             if (other is CircularString cs)
@@ -110,6 +186,7 @@ namespace NetTopologySuite.Geometries
             return Flatten().EqualsExact(other, tolerance);
         }
 
+        /// <inheritdoc cref="CopyInternal"/>
         protected override Geometry CopyInternal()
         {
             var seq = ControlPoints.Copy();
@@ -119,6 +196,7 @@ namespace NetTopologySuite.Geometries
         }
 
 
+        /// <inheritdoc cref="Coordinate"/>
         public override Coordinate Coordinate
         {
             get => _controlPoints.GetCoordinate(0);
@@ -169,7 +247,5 @@ namespace NetTopologySuite.Geometries
             {
             }
         }
-
-
     }
 }

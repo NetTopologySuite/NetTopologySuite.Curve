@@ -1,44 +1,48 @@
 using System;
 using System.Collections.Generic;
+using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.Geometries
 {
-    public class CurvedPolygon : CurvedGeometry<Polygon>
+    public class CurvedPolygon : CurvedGeometry<Polygon>, ISurface<Geometry>
     {
         public CurvedPolygon(CompoundCurve exteriorRing, CurvedGeometryFactory factory, double arcSegmentLength)
-            : this(exteriorRing, new CompoundCurve[0], factory, arcSegmentLength)
+            : this(exteriorRing, Array.Empty<Geometry>(), factory, arcSegmentLength)
         {
         }
 
-        internal CurvedPolygon(CompoundCurve exteriorRing, CompoundCurve[] interiorRings, CurvedGeometryFactory factory, double arcSegmentLength)
+        internal CurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings, CurvedGeometryFactory factory, double arcSegmentLength)
             : base(factory, arcSegmentLength)
         {
-            if (interiorRings == null)
-                interiorRings = new CompoundCurve[0];
-
-            if (!exteriorRing.IsRing)
-                throw new ArgumentException("Not a ring", nameof(exteriorRing));
-
             ExteriorRing = exteriorRing;
-
-            for (int i = 0; i < interiorRings.Length; i++)
-            {
-                if (!interiorRings[i].IsRing)
-                    throw new ArgumentException($"Not a ring in interiorRings at {i}", nameof(interiorRings));
-            }
-
             InteriorRings = interiorRings;
         }
 
 
-        public CompoundCurve ExteriorRing { get; }
+        public Geometry ExteriorRing { get; }
 
-        public IReadOnlyList<CompoundCurve> InteriorRings { get; }
+        private IReadOnlyList<Geometry> InteriorRings { get; }
 
-        public override double[] GetOrdinates(Ordinate ordinate)
+
+        public int NumInteriorRings
         {
-            throw new System.NotImplementedException();
+            get => InteriorRings.Count;
         }
+
+        public Geometry GetInteriorRingN(int index)
+        {
+            return InteriorRings[index];
+        }
+
+        /// <summary>
+        /// Gets a value to sort the geometry
+        /// </summary>
+        /// <remarks>
+        /// NOTE:<br/>
+        /// For JTS v1.17 this property's getter has been renamed to <c>getTypeCode()</c>.
+        /// In order not to break binary compatibility we did not follow.
+        /// </remarks>
+        protected override SortIndexValue SortIndex => SortIndexValue.Polygon;
 
         public override bool EqualsExact(Geometry other, double tolerance)
         {
@@ -60,11 +64,11 @@ namespace NetTopologySuite.Geometries
 
         protected override Geometry CopyInternal()
         {
-            var interiorRings = new CompoundCurve[InteriorRings.Count];
+            var interiorRings = new Geometry[InteriorRings.Count];
             for (int i = 0; i < InteriorRings.Count; i++)
-                interiorRings[i] = (CompoundCurve)InteriorRings[i].Copy();
+                interiorRings[i] = InteriorRings[i].Copy();
 
-            var res = new CurvedPolygon((CompoundCurve)ExteriorRing.Copy(), interiorRings, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            var res = new CurvedPolygon(ExteriorRing.Copy(), interiorRings, (CurvedGeometryFactory)Factory, ArcSegmentLength);
             return res;
         }
 
@@ -73,19 +77,66 @@ namespace NetTopologySuite.Geometries
             return ExteriorRing.EnvelopeInternal;
         }
 
-        protected override int CompareToSameClass(object o, IComparer<CoordinateSequence> comp)
+        protected internal override int CompareToSameClass(object o)
         {
-            throw new System.NotImplementedException();
+            if (!(o is ISurface))
+                throw new ArgumentException("Not a surface", nameof(o));
+
+            if (o is CurvedPolygon cp)
+            {
+                int comp = ExteriorRing.CompareToSameClass(cp.ExteriorRing);
+                if (comp != 0) return comp;
+                int minNumRings = Math.Min(NumInteriorRings, cp.NumInteriorRings);
+                for (int i = 0; i < minNumRings; i++)
+                {
+                    comp = InteriorRings[i].CompareToSameClass(cp.InteriorRings[i]);
+                    if (comp != 0) return comp;
+                }
+
+                return NumInteriorRings.CompareTo(cp.NumInteriorRings);
+            }
+
+            if (o is Polygon p)
+                return Flatten().CompareToSameClass(p);
+
+            throw new NotSupportedException();
+        }
+
+        protected internal override int CompareToSameClass(object o, IComparer<CoordinateSequence> comparer)
+        {
+            if (!(o is ISurface))
+                throw new ArgumentException("Not a surface", nameof(o));
+
+            if (o is CurvedPolygon cp)
+            {
+                int comp = ExteriorRing.CompareToSameClass(cp.ExteriorRing, comparer);
+                if (comp != 0) return comp;
+                int minNumRings = Math.Min(NumInteriorRings, cp.NumInteriorRings);
+                for (int i = 0; i < minNumRings; i++)
+                {
+                    comp = InteriorRings[i].CompareToSameClass(cp.InteriorRings[i], comparer);
+                    if (comp != 0) return comp;
+                }
+
+                return NumInteriorRings.CompareTo(cp.NumInteriorRings);
+            }
+
+            if (o is Polygon p)
+                return Flatten().CompareToSameClass(p, comparer);
+
+            throw new NotSupportedException();
         }
 
         public override string GeometryType
         {
-            get => CurvedGeometry.TypeNameMultiCurve;
+            get => CurvedGeometry.TypeNameCurvedPolygon;
         }
+
         public override OgcGeometryType OgcGeometryType
         {
-            get => OgcGeometryType.MultiCurve;
+            get => OgcGeometryType.CurvePolygon;
         }
+
         public override Coordinate Coordinate
         {
             get => ExteriorRing.Coordinate;
@@ -96,23 +147,39 @@ namespace NetTopologySuite.Geometries
             get => ExteriorRing.IsEmpty;
         }
 
-        public override Dimension Dimension { get; }
+        public override Dimension Dimension
+        {
+            get => Dimension.Surface;
+        }
 
-        public override Dimension BoundaryDimension { get; }
+        public override Dimension BoundaryDimension
+        {
+            get => Dimension.Curve;
+        }
 
         protected override Polygon FlattenInternal(double arcSegmentLength)
         {
-            var flattenedShell = ToRing(ExteriorRing.Flatten(arcSegmentLength));
+            var flattenedShell = ToLinearRing(ExteriorRing, arcSegmentLength);
             var flattenedHoles = new LinearRing[InteriorRings.Count];
             for (int i = 0; i < InteriorRings.Count; i++)
-                flattenedHoles[i] = ToRing(InteriorRings[i].Flatten(arcSegmentLength));
+                flattenedHoles[i] = ToLinearRing(InteriorRings[i], arcSegmentLength);
 
             return Factory.CreatePolygon(flattenedShell, flattenedHoles);
         }
 
-        private static LinearRing ToRing(LineString lineString)
+        private static LinearRing ToLinearRing(Geometry geom, double arcSegmentLength)
         {
-            return lineString.Factory.CreateLinearRing(lineString.CoordinateSequence);
+            if (geom is LinearRing linearRing)
+                return linearRing;
+
+            if (geom is LineString lineString)
+                return geom.Factory.CreateLinearRing(lineString.CoordinateSequence);
+
+            if (geom is ICurvedGeometry<LineString> curved)
+                return geom.Factory.CreateLinearRing(curved.Flatten(arcSegmentLength).CoordinateSequence);
+
+            Assert.ShouldNeverReachHere("Invalid geometry type");
+            return null;
         }
     }
 }

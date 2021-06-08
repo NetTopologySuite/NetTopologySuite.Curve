@@ -1,8 +1,10 @@
 using System;
-using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.Geometries
 {
+    /// <summary>
+    /// Curved geometry parameter
+    /// </summary>
     internal class CurvedGeometry
     {
         public const string TypeNameCircularString = "CircularString";
@@ -12,6 +14,10 @@ namespace NetTopologySuite.Geometries
         public const string TypeNameMultiSurface = "MultiSurface";
     }
 
+    /// <summary>
+    /// Base class for curved geometries
+    /// </summary>
+    /// <typeparam name="T">The type of the flattened geometry</typeparam>
     [Serializable]
     public abstract class CurvedGeometry<T> : Geometry, ICurvedGeometry<T> where T:Geometry
     {
@@ -35,6 +41,9 @@ namespace NetTopologySuite.Geometries
         /// </summary>
         public double ArcSegmentLength { get; }
 
+        /// <summary>
+        /// Gets a value indicating the flattened geometry
+        /// </summary>
         protected T Flattened { get; set; }
 
         /// <summary>
@@ -50,7 +59,7 @@ namespace NetTopologySuite.Geometries
         /// Flatten this curve geometry using the provided arc segment length.
         /// </summary>
         /// <param name="arcSegmentLength">The length of arc segments</param>
-        /// <returns>A <c>LineString</c></returns>
+        /// <returns>A flattened geometry</returns>
         public T Flatten(double arcSegmentLength)
         {
             if (arcSegmentLength <= 0d)
@@ -62,23 +71,17 @@ namespace NetTopologySuite.Geometries
             return FlattenInternal(arcSegmentLength);
         }
 
+        /// <summary>
+        /// Actual implementation of the flatten procedure
+        /// </summary>
+        /// <param name="arcSegmentLength">The maximum length of arc segments</param>
+        /// <returns>A flattened geometry</returns>
         protected abstract T FlattenInternal(double arcSegmentLength);
 
         Geometry ICurvedGeometry.Flatten()
         {
             return Flatten();
         }
-
-
-        /// <summary>
-        /// Gets a value to sort the geometry
-        /// </summary>
-        /// <remarks>
-        /// NOTE:<br/>
-        /// For JTS v1.17 this property's getter has been renamed to <c>getTypeCode()</c>.
-        /// In order not to break binary compatibility we did not follow.
-        /// </remarks>
-        protected override SortIndexValue SortIndex => SortIndexValue.LineString;
 
         /// <summary>
         /// Returns an array containing the values of all the vertices for
@@ -101,10 +104,18 @@ namespace NetTopologySuite.Geometries
         /// <seealso cref="Geometry.GeometryChanged"/>
         /// <seealso cref="Geometries.CoordinateSequence.SetOrdinate(int, int, double)"/>
         /// <seealso cref="Geometries.CoordinateSequence.SetOrdinate(int, Ordinate, double)"/>
-        public override Coordinate[] Coordinates => Flatten().Coordinates;
+        public sealed override Coordinate[] Coordinates => Flatten().Coordinates;
+
+        /// <inheritdoc cref="Geometry.GetOrdinates"/>
+        public sealed override double[] GetOrdinates(Ordinate ordinate)
+        {
+            var filter = new GetOrdinatesFilter(ordinate, NumPoints);
+            Apply(filter);
+            return filter.Ordinates;
+        }
 
         /// <inheritdoc cref="Geometry.NumPoints"/>
-        public override int NumPoints => Flatten().NumPoints;
+        public sealed override int NumPoints => Flatten().NumPoints;
 
         /// <summary>
         /// Returns the length of this <c>LineString</c>
@@ -120,18 +131,21 @@ namespace NetTopologySuite.Geometries
         /// of a Geometry is a set of Geometries of the next lower dimension."
         /// </summary>
         /// <returns>The closure of the combinatorial boundary of this <c>Geometry</c>.</returns>
-        public override Geometry Boundary => Flatten().Boundary;
+        public sealed override Geometry Boundary => Flatten().Boundary;
 
+        /// <inheritdoc cref="Apply(IGeometryFilter)"/>
         public override void Apply(IGeometryFilter filter)
         {
             Flatten().Apply(filter);
         }
 
+        /// <inheritdoc cref="Apply(IGeometryComponentFilter)"/>
         public override void Apply(IGeometryComponentFilter filter)
         {
             Flatten().Apply(filter);
         }
 
+        /// <inheritdoc cref="Apply(ICoordinateFilter)"/>
         public override void Apply(ICoordinateFilter filter)
         {
             Flatten().Apply(filter);
@@ -156,6 +170,7 @@ namespace NetTopologySuite.Geometries
             }
         }
 
+        /// <inheritdoc cref="Apply(ICoordinateSequenceFilter)"/>
         public override void Apply(ICoordinateSequenceFilter filter)
         {
             Flatten().Apply(filter);
@@ -163,6 +178,7 @@ namespace NetTopologySuite.Geometries
                 Apply(new NewFlattenedGeometry(Flattened));
         }
 
+        /// <inheritdoc cref="Apply(IEntireCoordinateSequenceFilter)"/>
         public override void Apply(IEntireCoordinateSequenceFilter filter)
         {
             Flatten().Apply(filter);
@@ -170,89 +186,83 @@ namespace NetTopologySuite.Geometries
                 GeometryChanged();
         }
 
-        protected override bool IsEquivalentClass(Geometry other)
+        /// <inheritdoc cref="IsEquivalentClass"/>
+        protected sealed override bool IsEquivalentClass(Geometry other)
         {
             return other is CurvedGeometry<T> || other is T;
         }
 
-        protected override int CompareToSameClass(object o)
-        {
-            var curve = o as CurvedGeometry<T>;
-            var line = o as T;
-            if (curve == null && line == null)
-                Assert.ShouldNeverReachHere("Curve or LineString type expected!");
-
-            if (curve != null)
-                line = curve.Flatten();
-
-            return Flatten().CompareTo(line);
-        }
-
+        /// <inheritdoc cref="ConvexHull"/>
         public override Geometry ConvexHull()
         {
             return Flatten().ConvexHull();
         }
 
+        /// <inheritdoc cref="Contains"/>
         public override bool Contains(Geometry g)
         {
             return Flatten().Contains(g);
         }
 
+        /// <inheritdoc cref="Covers"/>
         public override bool Covers(Geometry g)
         {
             return Flatten().Covers(g);
         }
 
+        /// <inheritdoc cref="Crosses"/>
         public override bool Crosses(Geometry g)
         {
             return Flatten().Crosses(g);
         }
 
+        /// <inheritdoc cref="Intersects"/>
         public override bool Intersects(Geometry g)
         {
             return Flatten().Intersects(g);
         }
 
+        /// <inheritdoc cref="Distance"/>
         public override double Distance(Geometry g)
         {
             return Flatten().Distance(g);
         }
 
+        /// <inheritdoc cref="Relate(Geometry,string)"/>
         public override bool Relate(Geometry g, string intersectionPattern)
         {
             return Flatten().Relate(g, intersectionPattern);
         }
 
+        /// <inheritdoc cref="Relate(Geometry)"/>
         public override IntersectionMatrix Relate(Geometry g)
         {
             return Flatten().Relate(g);
         }
 
+        /// <inheritdoc cref="IsSimple"/>
         public override bool IsSimple
         {
             get => Flatten().IsSimple;
         }
 
+        /// <inheritdoc cref="IsValid"/>
         public override bool IsValid
         {
             get => Flatten().IsValid;
         }
 
+        /// <inheritdoc cref="EqualsTopologically"/>
         public override bool EqualsTopologically(Geometry g)
         {
             return Flatten().EqualsTopologically(g);
         }
 
+        /// <inheritdoc cref="Normalize"/>
         public override void Normalize()
         {
             Flatten().Normalize();
             Apply(new NewFlattenedGeometry(Flattened));
-        }
-
-        
-        public override string ToString()
-        {
-            return base.ToString();
         }
     }
 }

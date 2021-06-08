@@ -76,7 +76,7 @@ namespace NetTopologySuite.Geometries
         /// Returns the name of this object's interface.
         /// </summary>
         /// <returns>"MultiLineString"</returns>
-        public override string GeometryType => Geometry.TypeNameMultiLineString;
+        public override string GeometryType => CurvedGeometry.TypeNameMultiCurve;
 
         /// <summary>
         /// Gets the OGC geometry type

@@ -5,6 +5,9 @@ using NetTopologySuite.Operation.Buffer;
 
 namespace NetTopologySuite.Geometries
 {
+    /// <summary>
+    /// A segment of a circle
+    /// </summary>
     public sealed class CircularArc
     {
         /// <summary>
@@ -349,6 +352,7 @@ namespace NetTopologySuite.Geometries
 
         }
 
+        /// <inheritdoc cref="object.ToString()"/>
         public override string ToString()
         {
             return $"CircularArc[{P0}, {P1}, {P2}]";

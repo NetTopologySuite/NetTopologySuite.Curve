@@ -4,30 +4,30 @@ using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.Geometries
 {
-    public abstract class CurvedLineString : CurvedGeometry<LineString>
+    /// <summary>
+    /// Base class for curved single component geometries
+    /// </summary>
+    public abstract class CurvedLineString : CurvedGeometry<LineString>, ICurve
     {
+        /// <summary>
+        /// Creates an instance of this class using the provided Factory
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="arcSegmentLength"></param>
         protected CurvedLineString(CurvedGeometryFactory factory, double arcSegmentLength)
             : base(factory, arcSegmentLength)
         {
         }
 
         /// <summary>
-        /// Gets an array of <see cref="double"/> ordinate values
+        /// Gets a value to sort the geometry
         /// </summary>
-        /// <param name="ordinate">The ordinate index</param>
-        /// <returns>An array of ordinate values</returns>
-        public override double[] GetOrdinates(Ordinate ordinate)
-        {
-            if (IsEmpty)
-                return new double[0];
-
-            var ordinateFlag = (Ordinates)(1 << (int)ordinate);
-            var points = Flatten().CoordinateSequence;
-            if ((points.Ordinates & ordinateFlag) != ordinateFlag)
-                return CreateArray(points.Count, Coordinate.NullOrdinate);
-
-            return CreateArray(points, ordinate);
-        }
+        /// <remarks>
+        /// NOTE:<br/>
+        /// For JTS v1.17 this property's getter has been renamed to <c>getTypeCode()</c>.
+        /// In order not to break binary compatibility we did not follow.
+        /// </remarks>
+        protected override SortIndexValue SortIndex => SortIndexValue.LineString;
 
         /// <summary>
         /// Returns a <c>CoordinateSequence</c> containing the values of all the vertices for
@@ -135,25 +135,6 @@ namespace NetTopologySuite.Geometries
                 if (points.GetCoordinate(i).Equals(pt))
                     return true;
             return false;
-        }
-
-        protected override int CompareToSameClass(object o, IComparer<CoordinateSequence> comp)
-        {
-            var curve = o as CurvedGeometry<LineString>;
-            var line = o as LineString;
-            if (curve == null && line == null)
-                Assert.ShouldNeverReachHere("CurvedGeometry<LineString> or LineString type expected!");
-
-            if (curve != null)
-                line = curve.Flatten();
-
-            return comp.Compare(Flatten().CoordinateSequence, line.CoordinateSequence);
-        }
-
-        public override string ToText()
-        {
-            var writer = new WKTWriterEx(3);
-            return writer.Write(this);
         }
     }
 }
