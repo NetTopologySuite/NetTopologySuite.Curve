@@ -13,8 +13,8 @@ namespace NetTopologySuite.Geometries
     {
         private CoordinateSequence _controlPoints;
         
-        internal CircularString(CoordinateSequence points, CurvedGeometryFactory factory, double arcSegmentLength)
-            : base(factory, arcSegmentLength)
+        internal CircularString(CoordinateSequence points, CurvedGeometryFactory factory)
+            : base(factory)
         {
             _controlPoints = points;
         }
@@ -75,7 +75,7 @@ namespace NetTopologySuite.Geometries
         protected override Geometry ReverseInternal()
         {
             var seq = _controlPoints.Reversed();
-            return new CircularString(seq, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            return new CircularString(seq, (CurvedGeometryFactory)Factory);
         }
 
         /// <inheritdoc cref="GeometryType"/>
@@ -190,7 +190,7 @@ namespace NetTopologySuite.Geometries
         protected override Geometry CopyInternal()
         {
             var seq = ControlPoints.Copy();
-            var res = new CircularString(seq, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            var res = new CircularString(seq, (CurvedGeometryFactory)Factory);
             res.Flattened = (LineString)Flattened?.Copy();
             return res;
         }

@@ -92,7 +92,7 @@ namespace NetTopologySuite.Geometries
             get
             {
                 if (IsEmpty)
-                    return new CompoundCurve(null, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+                    return new LineString(null, (CurvedGeometryFactory)Factory);
 
                 var allRings = new List<Geometry>();
                 for (int i = 0; i < NumGeometries; i++)
@@ -103,7 +103,7 @@ namespace NetTopologySuite.Geometries
                         allRings.Add(rings.GetGeometryN(i));
                 }
 
-                return new CompoundCurve(allRings.ToArray(), (CurvedGeometryFactory)Factory, ArcSegmentLength);
+                return Factory.BuildGeometry(allRings);
             }
         }
 

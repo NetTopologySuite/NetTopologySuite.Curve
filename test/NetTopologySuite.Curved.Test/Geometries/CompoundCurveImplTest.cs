@@ -4,7 +4,7 @@ using System;
 
 namespace NetTopologySuite.Test.Geometries
 {
-    public class CompoundCurveTest : CurvedGeometryTest
+    public class CompoundCurveImplTest : CurvedGeometryImplTest
     {
         [Test]
         public void TestEmpty()

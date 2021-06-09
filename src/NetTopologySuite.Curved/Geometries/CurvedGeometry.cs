@@ -26,20 +26,19 @@ namespace NetTopologySuite.Geometries
         /// Creates an instance of this class
         /// </summary>
         /// <param name="factory">A factory</param>
-        /// <param name="arcSegmentLength"></param>
-        protected CurvedGeometry(CurvedGeometryFactory factory, double arcSegmentLength)
+        protected CurvedGeometry(CurvedGeometryFactory factory)
             : base(factory)
         {
-            if (arcSegmentLength <= 0d)
-                throw new ArgumentOutOfRangeException(nameof(arcSegmentLength));
-            ArcSegmentLength = arcSegmentLength;
         }
 
         /// <summary>
         /// Gets a value indicating the default maximum length of arc segments that is
         /// used when flattening the curve.
         /// </summary>
-        public double ArcSegmentLength { get; }
+        public double ArcSegmentLength
+        {
+            get => ((CurvedGeometryFactory) Factory).ArcSegmentLength;
+        }
 
         /// <summary>
         /// Gets a value indicating the flattened geometry

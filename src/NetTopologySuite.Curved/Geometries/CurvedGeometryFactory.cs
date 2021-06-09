@@ -1,10 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NetTopologySuite.IO;
 
 namespace NetTopologySuite.Geometries
 {
+    /// <summary>
+    /// Supplies a set of utility methods for building Geometry objects
+    /// from lists of <c>Coordinate</c>s or <c>CoordinateSequence</c>s.
+    /// </summary>
+    /// <remarks>
+    /// Note that the factory constructor methods do <b>not</b> change the input coordinates in any way.
+    /// In particular, they are not rounded to the supplied <c>PrecisionModel</c>.
+    /// It is assumed that input Coordinates meet the given precision.
+    /// <para/>
+    /// Instances of this class are thread-safe.
+    /// </remarks>
     public class CurvedGeometryFactory : GeometryFactoryEx
     {
         /// <summary>
@@ -13,16 +23,13 @@ namespace NetTopologySuite.Geometries
         /// <param name="precisionModel">The precision model to use during computation</param>
         /// <param name="srid">A spatial reference identifier</param>
         /// <param name="coordinateSequenceFactory">The coordinate sequence factory to use when building sequences</param>
+        /// <param name="services">A specialized <see cref="NtsGeometryServices"/> object for curved geometry.</param>
         /// <param name="arcSegmentLength">A default arc segment length. A value of <c>0d</c> will lead to arc segment
         /// length to be computed from <see cref="Operation.Buffer.BufferParameters.DefaultQuadrantSegments"/>.</param>
-        public CurvedGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory, double arcSegmentLength)
-            : base(precisionModel, srid, coordinateSequenceFactory)
+        public CurvedGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory,
+            NtsCurvedGeometryServices services, double arcSegmentLength)
+            : base(precisionModel, srid, coordinateSequenceFactory, services)
         {
-            WKTReader = new Lazy<WKTReader>(() => new WKTReaderEx(GeometryServices));
-            WKTWriter = new Lazy<WKTWriter>(() => new WKTWriterEx(3));
-            WKBReader = new Lazy<WKBReader>(() => new WKBReaderEx(GeometryServices));
-            WKBWriter = new Lazy<WKBWriter>(() => new WKBWriterEx());
-
             if (arcSegmentLength < 0d)
                 throw new ArgumentOutOfRangeException(nameof(arcSegmentLength));
 
@@ -66,7 +73,7 @@ namespace NetTopologySuite.Geometries
                 if (sequence.Count < 3 || (sequence.Count - 1) % 2 != 0)
                     throw new ArgumentException("Invalid number of control points", nameof(sequence));
             }
-            return new CircularString(sequence, this, ArcSegmentLength);
+            return new CircularString(sequence, this);
         }
 
         /// <summary>
@@ -121,7 +128,7 @@ namespace NetTopologySuite.Geometries
             }
 
             // Create geometry
-            return new CompoundCurve(linealGeometries, this, ArcSegmentLength);
+            return new CompoundCurve(linealGeometries, this);
         }
 
         /// <summary>
@@ -175,7 +182,7 @@ namespace NetTopologySuite.Geometries
             if (exteriorRing.IsEmpty && interiorRings.Count(t => !t.IsEmpty) > 0)
                 throw new ArgumentException("exteriorRing is empty but interiorRings are not", nameof(interiorRings));
 
-            return new CurvedPolygon(exteriorRing, interiorRings, this, ArcSegmentLength);
+            return new CurvedPolygon(exteriorRing, interiorRings, this);
         }
 
         /// <summary>

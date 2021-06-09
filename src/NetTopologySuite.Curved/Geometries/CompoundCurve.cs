@@ -11,8 +11,8 @@ namespace NetTopologySuite.Geometries
     {
         private readonly Geometry[] _geometries;
 
-        internal CompoundCurve(Geometry[] geometries, CurvedGeometryFactory factory, double arcSegmentLength)
-            : base(factory, arcSegmentLength)
+        internal CompoundCurve(Geometry[] geometries, CurvedGeometryFactory factory)
+            : base(factory)
         {
             _geometries = geometries;
         }
@@ -51,7 +51,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < NumGeometries; i++)
                 res[i] = _geometries[i].Copy();
 
-            return new CompoundCurve(res, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            return new CompoundCurve(res, (CurvedGeometryFactory)Factory);
         }
 
         /// <inheritdoc cref="ComputeEnvelopeInternal"/>

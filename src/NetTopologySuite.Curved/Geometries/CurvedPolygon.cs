@@ -6,13 +6,13 @@ namespace NetTopologySuite.Geometries
 {
     public class CurvedPolygon : CurvedGeometry<Polygon>, ISurface<Geometry>
     {
-        public CurvedPolygon(CompoundCurve exteriorRing, CurvedGeometryFactory factory, double arcSegmentLength)
-            : this(exteriorRing, Array.Empty<Geometry>(), factory, arcSegmentLength)
+        public CurvedPolygon(CompoundCurve exteriorRing, CurvedGeometryFactory factory)
+            : this(exteriorRing, Array.Empty<Geometry>(), factory)
         {
         }
 
-        internal CurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings, CurvedGeometryFactory factory, double arcSegmentLength)
-            : base(factory, arcSegmentLength)
+        internal CurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings, CurvedGeometryFactory factory)
+            : base(factory)
         {
             ExteriorRing = exteriorRing;
             InteriorRings = interiorRings;
@@ -68,7 +68,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < InteriorRings.Count; i++)
                 interiorRings[i] = InteriorRings[i].Copy();
 
-            var res = new CurvedPolygon(ExteriorRing.Copy(), interiorRings, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            var res = new CurvedPolygon(ExteriorRing.Copy(), interiorRings, (CurvedGeometryFactory)Factory);
             return res;
         }
 

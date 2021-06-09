@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace NetTopologySuite.Test.Geometries
 {
     [TestFixture]
-    public class CircularStringTest : CurvedGeometryTest
+    public class CircularStringImplTest : CurvedGeometryImplTest
     {
 
         [Test]

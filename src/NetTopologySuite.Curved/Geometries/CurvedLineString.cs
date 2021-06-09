@@ -13,9 +13,8 @@ namespace NetTopologySuite.Geometries
         /// Creates an instance of this class using the provided Factory
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="arcSegmentLength"></param>
-        protected CurvedLineString(CurvedGeometryFactory factory, double arcSegmentLength)
-            : base(factory, arcSegmentLength)
+        protected CurvedLineString(CurvedGeometryFactory factory)
+            : base(factory)
         {
         }
 
@@ -127,10 +126,10 @@ namespace NetTopologySuite.Geometries
         /// Returns true if the given point is a vertex of this <c>LineString</c>.
         /// </summary>
         /// <param name="pt">The <c>Coordinate</c> to check.</param>
-        /// <returns><c>true</c> if <c>pt</c> is one of this <c>LineString</c>'s vertices.</returns>
+        /// <returns><c>true</c> if <c>pt</c> is one of this <c>CurvedLineString</c>'s vertices.</returns>
         public virtual bool IsCoordinate(Coordinate pt)
         {
-            var points = Flatten().CoordinateSequence;
+            var points = CoordinateSequence;
             for (int i = 0; i < points.Count; i++)
                 if (points.GetCoordinate(i).Equals(pt))
                     return true;
