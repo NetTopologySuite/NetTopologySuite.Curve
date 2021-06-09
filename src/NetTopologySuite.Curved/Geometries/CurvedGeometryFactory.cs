@@ -15,6 +15,7 @@ namespace NetTopologySuite.Geometries
     /// <para/>
     /// Instances of this class are thread-safe.
     /// </remarks>
+    [Serializable]
     public class CurvedGeometryFactory : GeometryFactoryEx
     {
         /// <summary>

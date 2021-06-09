@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NetTopologySuite.IO;
 using NetTopologySuite.Utilities;
@@ -7,6 +8,7 @@ namespace NetTopologySuite.Geometries
     /// <summary>
     /// Base class for curved single component geometries
     /// </summary>
+    [Serializable]
     public abstract class CurvedLineString : CurvedGeometry<LineString>, ICurve
     {
         /// <summary>

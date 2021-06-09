@@ -65,6 +65,19 @@ namespace NetTopologySuite.Geometries
             return Factory.CreateLineString(cl.ToCoordinateArray());
         }
 
+        /// <inheritdoc cref="Geometry.Length"/>
+        public override double Length
+        {
+            get
+            {
+                double res = 0d;
+                var it = new CircularArcEnumerator(ControlPoints);
+                while (it.MoveNext())
+                    res += it.Current?.Length ?? 0d;
+                return res;
+            }
+        }
+
         /// <inheritdoc cref="IsEmpty"/>
         public override bool IsEmpty
         {
@@ -90,7 +103,7 @@ namespace NetTopologySuite.Geometries
             get
             {
                 return IsEmpty
-                    ? Point.Empty
+                    ? Factory.CreatePoint()
                     : Factory.CreatePoint(ControlPoints.GetCoordinate(ControlPoints.Count / 2));
             }
         }

@@ -7,6 +7,7 @@ namespace NetTopologySuite.Geometries
     /// <summary>
     /// A curved geometry made up of several <see cref="ICurve"/>s.
     /// </summary>
+    [Serializable]
     public class CompoundCurve : CurvedLineString
     {
         private readonly Geometry[] _geometries;

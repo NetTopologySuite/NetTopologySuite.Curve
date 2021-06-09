@@ -61,7 +61,7 @@ namespace NetTopologySuite.Geometries
         /// <returns>A flattened geometry</returns>
         public T Flatten(double arcSegmentLength)
         {
-            if (arcSegmentLength <= 0d)
+            if (arcSegmentLength < 0d)
                 throw new ArgumentOutOfRangeException(nameof(arcSegmentLength), "must be positive!");
 
             if (arcSegmentLength == ArcSegmentLength)
@@ -116,11 +116,11 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="Geometry.NumPoints"/>
         public sealed override int NumPoints => Flatten().NumPoints;
 
-        /// <summary>
-        /// Returns the length of this <c>LineString</c>
-        /// </summary>
-        /// <returns>The length of the polygon.</returns>
-        public override double Length => Flatten().Length;
+        ///// <summary>
+        ///// Returns the length of this <c>LineString</c>
+        ///// </summary>
+        ///// <returns>The length of the polygon.</returns>
+        //public override double Length => Flatten().Length;
 
         /// <summary>
         /// Returns the boundary, or an empty geometry of appropriate dimension

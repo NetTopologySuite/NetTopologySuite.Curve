@@ -4,10 +4,31 @@ using System;
 
 namespace NetTopologySuite.Test.Geometries
 {
+    [TestFixture(0d, 5E-4)]
+    [TestFixture(0.001d, 5E-7)]
     public class CompoundCurveImplTest : CurvedGeometryImplTest
     {
+        public CompoundCurveImplTest(double arcSegmentLength, double lengthTolerance)
+            :base(arcSegmentLength, lengthTolerance)
+        {
+            
+        }
+
+        protected override Geometry CreateGeometry()
+        {
+            var pts = new[] {
+                new Coordinate(-2, 0), new Coordinate(0, 2), new Coordinate(2, 0),
+                new Coordinate(4, -2), new Coordinate(6, 0) };
+
+            return Factory.CreateCompoundCurve(new Geometry[]
+            {
+                Factory.CreateCircularString(pts),
+                Factory.CreateLineString(new[] {new Coordinate(6, 0), new Coordinate(10, 0)})
+            });
+        }
+
         [Test]
-        public void TestEmpty()
+        public override void TestIsEmpty()
         {
             var geoms = Array.Empty<Geometry>();
 
@@ -37,8 +58,35 @@ namespace NetTopologySuite.Test.Geometries
             Assert.That(cc.IsCoordinate(ls.CoordinateSequence.GetCoordinate(0)));
             Assert.That(cc.IsCoordinate(ls.CoordinateSequence.GetCoordinate(1)));
 
-            Assert.That(cc.Length, Is.EqualTo(cs.Length + ls.Length).Within(5E-7));
-            Assert.That(cc.Flatten().Length, Is.EqualTo(cs.Length + ls.Length).Within(5E-7));
+            Assert.That(cc.Length, Is.EqualTo(cs.Length + ls.Length).Within(LengthTolerance));
+            Assert.That(cc.Flatten().Length / cc.Length, Is.GreaterThanOrEqualTo(0.98));
+        }
+
+        [Test]
+        public override void TestIsSimple()
+        {
+            // Not simple
+            var ca = new Circle(0, 12, 4).GetCircularArc(180, 90, 0);
+            var geom = Factory.CreateCompoundCurve(new Geometry[]
+            {
+                Factory.CreateCircularString(new[] {ca.P0, ca.P1, ca.P2}),
+                Factory.CreateLineString(new[] {ca.P2, new Coordinate(ca.P0.X, ca.P1.Y)}),
+            });
+            Assert.That(geom.IsSimple, Is.False);
+
+            // Simple
+            geom = Factory.CreateCompoundCurve(new Geometry[]
+            {
+                Factory.CreateCircularString(new[] {ca.P0, ca.P1, ca.P2}),
+                Factory.CreateLineString(new[] {ca.P2, new Coordinate(0, 8)}),
+            });
+            Assert.That(geom.IsSimple, Is.True);
+        }
+
+        [Test]
+        public override void TestIsValid()
+        {
+            Assert.Inconclusive("Not yet implemented");
         }
     }
 }
