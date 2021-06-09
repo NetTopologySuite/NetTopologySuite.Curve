@@ -3,19 +3,13 @@ using NetTopologySuite.Operation.OverlayNG;
 
 namespace NetTopologySuite.Geometries
 {
-    public class CurveOverlay
+    public class CurvedGeometryOverlay
     {
-        public GeometryOverlay CurveV2 => CurveOverlayV2.Instance;
+        public static GeometryOverlay CurveV2 => new CurvedGeometryOverlayV2();
 
 
-        private sealed class CurveOverlayV2 : GeometryOverlay
+        private sealed class CurvedGeometryOverlayV2 : GeometryOverlay
         {
-            public static GeometryOverlay Instance { get; } = new CurveOverlayV2();
-
-            private CurveOverlayV2()
-            {
-            }
-
             protected override Geometry Overlay(Geometry geom0, Geometry geom1, SpatialFunction opCode)
             {
                 return OverlayNGRobust.Overlay(Flatten(geom0), Flatten(geom1), opCode);
