@@ -3,23 +3,23 @@ using System;
 namespace NetTopologySuite.Geometries
 {
     /// <summary>
-    /// Curved geometry parameter
+    /// Curve geometry parameter
     /// </summary>
     internal class CurveGeometry
     {
         public const string TypeNameCircularString = "CircularString";
         public const string TypeNameCompoundCurve = "CompoundCurve";
-        public const string TypeNameCurvedPolygon = "CurvePolygon";
+        public const string TypeNameCurvePolygon = "CurvePolygon";
         public const string TypeNameMultiCurve = "MultiCurve";
         public const string TypeNameMultiSurface = "MultiSurface";
     }
 
     /// <summary>
-    /// Base class for curved geometries
+    /// Base class for curve geometries
     /// </summary>
     /// <typeparam name="T">The type of the flattened geometry</typeparam>
     [Serializable]
-    public abstract class CurveGeometry<T> : Geometry, ICurvedGeometry<T> where T:Geometry
+    public abstract class CurveGeometry<T> : Geometry, ICurveGeometry<T> where T:Geometry
     {
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace NetTopologySuite.Geometries
         /// <returns>A flattened geometry</returns>
         protected abstract T FlattenInternal(double arcSegmentLength);
 
-        Geometry ICurvedGeometry.Flatten()
+        Geometry ICurveGeometry.Flatten()
         {
             return Flatten();
         }

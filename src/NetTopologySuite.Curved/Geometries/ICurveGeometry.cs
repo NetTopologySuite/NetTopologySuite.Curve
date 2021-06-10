@@ -3,7 +3,7 @@ namespace NetTopologySuite.Geometries
     /// <summary>
     /// Marker interface for geometries that have 
     /// </summary>
-    public interface ICurvedGeometry
+    public interface ICurveGeometry
     {
         /// <summary>
         /// Creates a flattened version of this curved geometry, 
@@ -18,10 +18,10 @@ namespace NetTopologySuite.Geometries
     }
 
     /// <summary>
-    /// Generic version of the <see cref="ICurvedGeometry"/> interface
+    /// Generic version of the <see cref="ICurveGeometry"/> interface
     /// </summary>
     /// <typeparam name="T">The type of the flattened geometry.</typeparam>
-    public interface ICurvedGeometry<out T> : ICurvedGeometry where T : Geometry
+    public interface ICurveGeometry<out T> : ICurveGeometry where T : Geometry
     {
         /// <summary>
         /// Creates a flattened version of this curved geometry, 

@@ -8,14 +8,14 @@
   </PropertyGroup>
 
 	<PropertyGroup Label="NuGet Package Info">
-		<PackageId>NetTopologySuite.Curved</PackageId>
-		<Title>NTS - Topology Suite for Curved Geometry</Title>
+		<PackageId>NetTopologySuite.Curve</PackageId>
+		<Title>NTS - Topology Suite for Curve Geometry</Title>
 		<Authors>NetTopologySuite - Team</Authors>
 		<Owners>NetTopologySuite - Team</Owners>
 		<PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Description>The NTS Topology Suite is an API for modelling and manipulating 2-dimensional linear geometry. It provides numerous geometric predicates and functions. NTS conforms to the Simple Features Specification.</Description>
-		<PackageTags>NTS;Topology;OGC;SFS</PackageTags>
+		<PackageTags>NTS;Topology;OGC;SFS;Curve</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>

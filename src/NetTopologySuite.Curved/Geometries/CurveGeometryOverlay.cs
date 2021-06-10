@@ -33,7 +33,7 @@ namespace NetTopologySuite.Geometries
                 if (geom == null)
                     return geom;
 
-                if (!HasCurved(geom))
+                if (!HasCurve(geom))
                     return geom;
 
                 var factory = geom.Factory;
@@ -46,7 +46,7 @@ namespace NetTopologySuite.Geometries
                         case GeometryCollection _:
                             geometries[i] = Flatten(testGeom);
                             break;
-                        case ICurvedGeometry curve:
+                        case ICurveGeometry curve:
                             geometries[i] = curve.Flatten();
                             break;
                         default:
@@ -59,11 +59,11 @@ namespace NetTopologySuite.Geometries
             }
 
             /// <summary>
-            /// Predicate check if <paramref cref="geom"/> has any curved elements
+            /// Predicate check if <paramref name="geom"/> has any curved elements
             /// </summary>
             /// <param name="geom">The geometry to check for curved elements</param>
             /// <returns><c>true</c> if a curved geometry was found.</returns>
-            private bool HasCurved(Geometry geom)
+            private bool HasCurve(Geometry geom)
             {
                 for (int i = 0; i < geom.NumGeometries; i++)
                 {
@@ -71,10 +71,10 @@ namespace NetTopologySuite.Geometries
                     switch (testGeom)
                     {
                         case GeometryCollection _:
-                            if (HasCurved(testGeom))
+                            if (HasCurve(testGeom))
                                 return true;
                             break;
-                        case ICurvedGeometry _:
+                        case ICurveGeometry _:
                             return true;
                     }
                 }

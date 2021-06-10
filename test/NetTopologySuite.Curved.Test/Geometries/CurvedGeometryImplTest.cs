@@ -14,7 +14,7 @@ namespace NetTopologySuite.Test.Geometries
 
         public CurvedGeometryImplTest(double arcSegmentLength, double lengthTolerance)
         {
-            _instance = new NtsCurvedGeometryServices(
+            _instance = new NtsCurveGeometryServices(
                 CoordinateArraySequenceFactory.Instance, new PrecisionModel(PrecisionModels.Floating), 0,
                 new CoordinateEqualityComparer(), arcSegmentLength);
 

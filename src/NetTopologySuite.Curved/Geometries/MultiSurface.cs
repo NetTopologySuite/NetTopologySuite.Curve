@@ -1,22 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace NetTopologySuite.Geometries
 {
     /// <summary>
     /// 
     /// </summary>
-    public class MultiSurface : GeometryCollection, ICurvedGeometry<MultiPolygon>, IPolygonal
+    public class MultiSurface : GeometryCollection, ICurveGeometry<MultiPolygon>, IPolygonal
     {
         private MultiPolygon _flattened;
 
-        public MultiSurface(Geometry[] geometries, CurveGeometryFactory factory, double arcSegmentLength)
+        public MultiSurface(Geometry[] geometries, CurveGeometryFactory factory)
             : base(geometries, factory)
         {
-            if (arcSegmentLength <= 0d)
-                throw new ArgumentOutOfRangeException(nameof(arcSegmentLength));
-
             for (int i = 0; i < geometries.Length; i++)
             {
                 var testGeom = geometries[i];
@@ -25,11 +21,9 @@ namespace NetTopologySuite.Geometries
                 if (testGeom is GeometryCollection)
                     throw new ArgumentException(nameof(geometries));
             }
-
-            ArcSegmentLength = arcSegmentLength;
         }
 
-        Geometry ICurvedGeometry.Flatten()
+        Geometry ICurveGeometry.Flatten()
         {
             return Flatten();
         }
@@ -65,7 +59,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < surfaces.Length; i++)
                 surfaces[i] = GetGeometryN(i).Copy();
 
-            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory, ArcSegmentLength);
+            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory);
         }
 
         protected override SortIndexValue SortIndex => SortIndexValue.MultiPolygon;
@@ -119,7 +113,7 @@ namespace NetTopologySuite.Geometries
             var surfaces = new Geometry[NumGeometries];
             for (int i = 0; i < surfaces.Length; i++)
                 surfaces[i] = GetGeometryN(i).Reverse();
-            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory, ArcSegmentLength);
+            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory);
         }
     }
 }

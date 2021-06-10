@@ -36,14 +36,14 @@ namespace NetTopologySuite.Test.Geometries
                 })
             };
 
-            return Factory.CreateCurvedPolygon(shell, holes);
+            return Factory.CreateCurvePolygon(shell, holes);
         }
 
         [Test]
         public override void TestIsEmpty()
         {
-            var cp0 = Factory.CreateCurvedPolygon();
-            var cp1 = Factory.CreateCurvedPolygon(null);
+            var cp0 = Factory.CreateCurvePolygon();
+            var cp1 = Factory.CreateCurvePolygon(null);
 
             Assert.That(cp0.IsEmpty, Is.True);
             Assert.That(cp1.IsEmpty, Is.True);

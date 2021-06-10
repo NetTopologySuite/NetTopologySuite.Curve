@@ -128,7 +128,7 @@ namespace NetTopologySuite.Geometries
         /// Returns true if the given point is a vertex of this <c>LineString</c>.
         /// </summary>
         /// <param name="pt">The <c>Coordinate</c> to check.</param>
-        /// <returns><c>true</c> if <c>pt</c> is one of this <c>CurvedLineString</c>'s vertices.</returns>
+        /// <returns><c>true</c> if <c>pt</c> is one of this <c>CurveLineString</c>'s vertices.</returns>
         public virtual bool IsCoordinate(Coordinate pt)
         {
             var points = CoordinateSequence;

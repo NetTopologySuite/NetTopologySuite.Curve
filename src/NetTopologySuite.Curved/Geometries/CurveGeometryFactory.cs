@@ -24,11 +24,11 @@ namespace NetTopologySuite.Geometries
         /// <param name="precisionModel">The precision model to use during computation</param>
         /// <param name="srid">A spatial reference identifier</param>
         /// <param name="coordinateSequenceFactory">The coordinate sequence factory to use when building sequences</param>
-        /// <param name="services">A specialized <see cref="NtsGeometryServices"/> object for curved geometry.</param>
+        /// <param name="services">A specialized <see cref="NtsGeometryServices"/> object for curve geometry.</param>
         /// <param name="arcSegmentLength">A default arc segment length. A value of <c>0d</c> will lead to arc segment
         /// length to be computed from <see cref="Operation.Buffer.BufferParameters.DefaultQuadrantSegments"/>.</param>
         public CurveGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory,
-            NtsCurvedGeometryServices services, double arcSegmentLength)
+            NtsCurveGeometryServices services, double arcSegmentLength)
             : base(precisionModel, srid, coordinateSequenceFactory, services)
         {
             if (arcSegmentLength < 0d)
@@ -38,7 +38,7 @@ namespace NetTopologySuite.Geometries
         }
 
         /// <summary>
-        /// Gets a value indicating the maximum arc segment length used by curved geometry when
+        /// Gets a value indicating the maximum arc segment length used by curve geometry when
         /// flattening the geometry
         /// </summary>
         public double ArcSegmentLength { get; }
@@ -101,14 +101,14 @@ namespace NetTopologySuite.Geometries
             {
                 if (linealGeometries[i] == null || linealGeometries[i].IsEmpty)
                     throw new ArgumentException(
-                        $"linealGeometries contains null or empty geometry!",
+                        $"Contains null or empty geometry!",
                         nameof(linealGeometries));
 
                 var ls = linealGeometries[i] as LineString;
                 var cs = linealGeometries[i] as CircularString;
                 if (ls == null && cs == null)
                     throw new ArgumentException(
-                        $"linealGeometries contains geometry of invalid type: {linealGeometries[i].GeometryType}!",
+                        $"Contains geometry of invalid type: {linealGeometries[i].GeometryType}!",
                         nameof(linealGeometries));
 
                 // Check connectivity
@@ -133,29 +133,29 @@ namespace NetTopologySuite.Geometries
         }
 
         /// <summary>
-        /// Creates an empty <c>CURVEDPOLYGON</c> geometry.
+        /// Creates an empty <c>CURVEPOLYGON</c> geometry.
         /// </summary>
-        /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvePolygon CreateCurvedPolygon() => CreateCurvedPolygon(null);
+        /// <returns>An empty <c>CURVEPOLYGON</c> geometry</returns>
+        public CurvePolygon CreateCurvePolygon() => CreateCurvePolygon(null);
 
         /// <summary>
-        /// Creates a <c>CURVEDPOLYGON</c> geometry based on the provided <paramref name="exteriorRing"/> geometry.
+        /// Creates a <c>CURVEPOLYGON</c> geometry based on the provided <paramref name="exteriorRing"/> geometry.
         /// </summary>
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
-        /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvePolygon CreateCurvedPolygon(Geometry exteriorRing)
+        /// <returns>An empty <c>CURVEPOLYGON</c> geometry</returns>
+        public CurvePolygon CreateCurvePolygon(Geometry exteriorRing)
         {
-            return CreateCurvedPolygon(exteriorRing, Array.Empty<Geometry>());
+            return CreateCurvePolygon(exteriorRing, Array.Empty<Geometry>());
         }
 
         /// <summary>
-        /// Creates a <c>CURVEDPOLYGON</c> geometry based on the provided <paramref name="exteriorRing"/> and
+        /// Creates a <c>CURVEPOLYGON</c> geometry based on the provided <paramref name="exteriorRing"/> and
         /// <paramref name="interiorRings"/> geometries.
         /// </summary>
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
         /// <param name="interiorRings">An array of geometries defining the interior rings.</param>
-        /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvePolygon CreateCurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings)
+        /// <returns>An empty <c>CURVEPOLYGON</c> geometry</returns>
+        public CurvePolygon CreateCurvePolygon(Geometry exteriorRing, Geometry[] interiorRings)
         {
             if (exteriorRing == null)
                 exteriorRing = CreateLinearRing();
@@ -199,7 +199,7 @@ namespace NetTopologySuite.Geometries
         /// <returns>A <c>MULTICURVE</c> geometry</returns>
         public MultiCurve CreateMultiCurve(params Geometry[] geometries)
         {
-            return new MultiCurve(geometries, this, ArcSegmentLength);
+            return new MultiCurve(geometries, this);
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace NetTopologySuite.Geometries
         /// <returns>An empty <c>MULTISURFACE</c> geometry</returns>
         public MultiSurface CreateMultiSurface(params Geometry[] geometries)
         {
-            return new MultiSurface(geometries, this, ArcSegmentLength);
+            return new MultiSurface(geometries, this);
         }
 
         /// <inheritdoc cref="BuildGeometry"/>

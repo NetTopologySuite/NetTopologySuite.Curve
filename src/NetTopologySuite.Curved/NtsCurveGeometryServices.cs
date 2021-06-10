@@ -7,13 +7,13 @@ namespace NetTopologySuite
     /// <summary>
     /// A geometry service provider class that supports curved geometries.
     /// </summary>
-    public class NtsCurvedGeometryServices : NtsGeometryServices
+    public class NtsCurveGeometryServices : NtsGeometryServices
     {
         /// <summary>
         /// Creates a new instance of this class using the provided arguments.
         /// </summary>
         /// <remarks>
-        /// The <see cref="GeometryOverlay"/> argument from <see cref="NtsCurvedGeometryServices"/> constructor is set internally to
+        /// The <see cref="GeometryOverlay"/> argument from <see cref="NtsCurveGeometryServices"/> constructor is set internally to
         /// <see cref="CurveGeometryOverlay.CurveV2"/>.
         /// </remarks>
         /// <param name="coordinateSequenceFactory">A coordinate sequence factory</param>
@@ -21,7 +21,7 @@ namespace NetTopologySuite
         /// <param name="srid">A spatial reference identifier</param>
         /// <param name="coordinateEqualityComparer">A coordinate equality comparer</param>
         /// <param name="defaultArcSegmentLength">An arc segment length value that is used to flatten curved geometries. Must be positive.</param>
-        public NtsCurvedGeometryServices(CoordinateSequenceFactory coordinateSequenceFactory,
+        public NtsCurveGeometryServices(CoordinateSequenceFactory coordinateSequenceFactory,
             PrecisionModel precisionModel, int srid, 
             CoordinateEqualityComparer coordinateEqualityComparer, double defaultArcSegmentLength)
             :base(coordinateSequenceFactory, precisionModel, srid, CurveGeometryOverlay.CurveV2, coordinateEqualityComparer)

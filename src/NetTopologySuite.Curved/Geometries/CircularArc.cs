@@ -341,7 +341,7 @@ namespace NetTopologySuite.Geometries
             double angle = (Math.Floor(angleP0 / AngleUtility.PiOver2) + 1) * AngleUtility.PiOver2;
             while (angle < angleP2)
             {
-                double x = c.X + _radius * Math.Sin(angle);
+                double x = c.X + _radius * Math.Cos(angle);
                 double y = c.Y + _radius * Math.Sin(angle);
                 res.ExpandToInclude(x, y);
                 angle += AngleUtility.PiOver2;

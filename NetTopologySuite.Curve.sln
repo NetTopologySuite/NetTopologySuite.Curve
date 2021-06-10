@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.Curved", "src\NetTopologySuite.Curved\NetTopologySuite.Curved.csproj", "{153BD541-1128-4096-A98C-F30C31D419A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.Curve", "src\NetTopologySuite.Curved\NetTopologySuite.Curve.csproj", "{153BD541-1128-4096-A98C-F30C31D419A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.Curved.Test", "test\NetTopologySuite.Curved.Test\NetTopologySuite.Curved.Test.csproj", "{87A5A2F7-22A5-4D3B-99D2-C248D4A0E0D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.Curve.Test", "test\NetTopologySuite.Curved.Test\NetTopologySuite.Curve.Test.csproj", "{87A5A2F7-22A5-4D3B-99D2-C248D4A0E0D9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite", "NetTopologySuite\src\NetTopologySuite\NetTopologySuite.csproj", "{F4240A2C-D350-4AEB-98F0-FCEB654F01CB}"
 EndProject

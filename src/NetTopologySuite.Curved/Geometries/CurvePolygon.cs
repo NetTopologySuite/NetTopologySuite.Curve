@@ -132,7 +132,7 @@ namespace NetTopologySuite.Geometries
 
         public override string GeometryType
         {
-            get => CurveGeometry.TypeNameCurvedPolygon;
+            get => CurveGeometry.TypeNameCurvePolygon;
         }
 
         public override OgcGeometryType OgcGeometryType
@@ -178,8 +178,8 @@ namespace NetTopologySuite.Geometries
             if (geom is LineString lineString)
                 return geom.Factory.CreateLinearRing(lineString.CoordinateSequence);
 
-            if (geom is ICurvedGeometry<LineString> curved)
-                return geom.Factory.CreateLinearRing(curved.Flatten(arcSegmentLength).CoordinateSequence);
+            if (geom is ICurveGeometry<LineString> curve)
+                return geom.Factory.CreateLinearRing(curve.Flatten(arcSegmentLength).CoordinateSequence);
 
             Assert.ShouldNeverReachHere("Invalid geometry type");
             return null;
