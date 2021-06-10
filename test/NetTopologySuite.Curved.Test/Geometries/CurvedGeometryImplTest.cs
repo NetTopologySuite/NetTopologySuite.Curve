@@ -86,5 +86,41 @@ namespace NetTopologySuite.Test.Geometries
 
             NtsGeometryServices.Instance = old;
         }
+
+        [Test]
+        public void TestInteriorPoint()
+        {
+            var geom = CreateGeometry();
+            Geometry interiorPoint = null;
+
+            Assert.That(() => interiorPoint = geom.InteriorPoint, Throws.Nothing);
+            Assert.That(interiorPoint, Is.Not.Null);
+        }
+
+        [Test]
+        public void TestCentroid()
+        {
+            var geom = CreateGeometry();
+            Geometry centroid = null;
+
+            Assert.That(() => centroid = geom.Centroid, Throws.Nothing);
+            Assert.That(centroid, Is.Not.Null);
+        }
+
+        [Test]
+        public void TestConvexHull()
+        {
+            var geom = CreateGeometry();
+            Geometry convexHull = null;
+
+            Assert.That(() => convexHull = geom.ConvexHull(), Throws.Nothing);
+            Assert.That(convexHull, Is.Not.Null);
+
+            foreach (var coordinate in geom.Coordinates)
+            {
+                Assert.That(convexHull.Covers(
+                    geom.Factory.CreatePoint(coordinate)), Is.True);
+            }
+        }
     }
 }

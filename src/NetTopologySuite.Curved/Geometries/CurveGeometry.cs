@@ -82,6 +82,12 @@ namespace NetTopologySuite.Geometries
             return Flatten();
         }
 
+        /// <inheritdoc cref="Centroid"/>
+        public override Point Centroid => Flatten().Centroid;
+
+        /// <inheritdoc cref="InteriorPoint"/>
+        public override Point InteriorPoint => Flatten().InteriorPoint;
+
         /// <summary>
         /// Returns an array containing the values of all the vertices for
         /// this geometry.
