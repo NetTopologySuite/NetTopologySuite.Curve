@@ -6,7 +6,7 @@ namespace NetTopologySuite.Geometries
     {
         private MultiLineString _flattened;
 
-        public MultiCurve(Geometry[] geometries, CurvedGeometryFactory factory, double arcSegmentLength) : base(geometries, factory)
+        public MultiCurve(Geometry[] geometries, CurveGeometryFactory factory, double arcSegmentLength) : base(geometries, factory)
         {
             if (geometries == null)
                 geometries = new Geometry[0];
@@ -31,7 +31,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < NumGeometries; i++)
             {
                 var testGeom = GetGeometryN(i);
-                if (testGeom is CurvedGeometry<LineString> c)
+                if (testGeom is CurveGeometry<LineString> c)
                     geoms[i] = c.Flatten(arcSegmentLength);
                 else
                     geoms[i] = (LineString)testGeom;
@@ -76,7 +76,7 @@ namespace NetTopologySuite.Geometries
         /// Returns the name of this object's interface.
         /// </summary>
         /// <returns>"MultiLineString"</returns>
-        public override string GeometryType => CurvedGeometry.TypeNameMultiCurve;
+        public override string GeometryType => CurveGeometry.TypeNameMultiCurve;
 
         /// <summary>
         /// Gets the OGC geometry type
@@ -99,7 +99,7 @@ namespace NetTopologySuite.Geometries
                     var testGeom = GetGeometryN(i);
                     if (testGeom is LineString ls && !ls.IsClosed)
                         return false;
-                    if (testGeom is CurvedLineString cs && !cs.IsClosed)
+                    if (testGeom is CurveLineString cs && !cs.IsClosed)
                         return false;
                 }
                 return true;
@@ -117,7 +117,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < NumGeometries; i++)
                 lineStrings[i] = GetGeometryN(i).Reverse();
 
-            return new MultiCurve(lineStrings, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            return new MultiCurve(lineStrings, (CurveGeometryFactory)Factory, ArcSegmentLength);
         }
 
         protected override Geometry CopyInternal()
@@ -126,7 +126,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < lineStrings.Length; i++)
                 lineStrings[i] = GetGeometryN(i).Copy();
 
-            var res = new MultiCurve(lineStrings, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            var res = new MultiCurve(lineStrings, (CurveGeometryFactory)Factory, ArcSegmentLength);
             res._flattened = (MultiLineString)_flattened?.Copy();
 
             return res;

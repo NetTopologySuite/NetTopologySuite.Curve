@@ -9,13 +9,13 @@ namespace NetTopologySuite.Geometries
     /// Base class for curved single component geometries
     /// </summary>
     [Serializable]
-    public abstract class CurvedLineString : CurvedGeometry<LineString>, ICurve
+    public abstract class CurveLineString : CurveGeometry<LineString>, ICurve
     {
         /// <summary>
         /// Creates an instance of this class using the provided Factory
         /// </summary>
         /// <param name="factory"></param>
-        protected CurvedLineString(CurvedGeometryFactory factory)
+        protected CurveLineString(CurveGeometryFactory factory)
             : base(factory)
         {
         }

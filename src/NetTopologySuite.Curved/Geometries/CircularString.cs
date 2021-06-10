@@ -9,11 +9,11 @@ namespace NetTopologySuite.Geometries
     /// 
     /// </summary>
     [Serializable]
-    public sealed class CircularString : CurvedLineString
+    public sealed class CircularString : CurveLineString
     {
         private CoordinateSequence _controlPoints;
         
-        internal CircularString(CoordinateSequence points, CurvedGeometryFactory factory)
+        internal CircularString(CoordinateSequence points, CurveGeometryFactory factory)
             : base(factory)
         {
             _controlPoints = points;
@@ -88,11 +88,11 @@ namespace NetTopologySuite.Geometries
         protected override Geometry ReverseInternal()
         {
             var seq = _controlPoints.Reversed();
-            return new CircularString(seq, (CurvedGeometryFactory)Factory);
+            return new CircularString(seq, (CurveGeometryFactory)Factory);
         }
 
         /// <inheritdoc cref="GeometryType"/>
-        public override string GeometryType => CurvedGeometry.TypeNameCircularString;
+        public override string GeometryType => CurveGeometry.TypeNameCircularString;
 
         /// <inheritdoc cref="OgcGeometryType"/>
         public override OgcGeometryType OgcGeometryType => OgcGeometryType.CircularString;
@@ -203,7 +203,7 @@ namespace NetTopologySuite.Geometries
         protected override Geometry CopyInternal()
         {
             var seq = ControlPoints.Copy();
-            var res = new CircularString(seq, (CurvedGeometryFactory)Factory);
+            var res = new CircularString(seq, (CurveGeometryFactory)Factory);
             res.Flattened = (LineString)Flattened?.Copy();
             return res;
         }

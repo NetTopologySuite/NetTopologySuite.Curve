@@ -11,7 +11,7 @@ namespace NetTopologySuite.Geometries
     {
         private MultiPolygon _flattened;
 
-        public MultiSurface(Geometry[] geometries, CurvedGeometryFactory factory, double arcSegmentLength)
+        public MultiSurface(Geometry[] geometries, CurveGeometryFactory factory, double arcSegmentLength)
             : base(geometries, factory)
         {
             if (arcSegmentLength <= 0d)
@@ -43,7 +43,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < NumGeometries; i++)
             {
                 var testGeom = GetGeometryN(i);
-                if (testGeom is CurvedGeometry<Polygon> c)
+                if (testGeom is CurveGeometry<Polygon> c)
                     geoms[i] = c.Flatten(arcSegmentLength);
                 else
                     geoms[i] = (Polygon)testGeom;
@@ -65,7 +65,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < surfaces.Length; i++)
                 surfaces[i] = GetGeometryN(i).Copy();
 
-            return new MultiSurface(surfaces, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory, ArcSegmentLength);
         }
 
         protected override SortIndexValue SortIndex => SortIndexValue.MultiPolygon;
@@ -77,7 +77,7 @@ namespace NetTopologySuite.Geometries
         public override Dimension BoundaryDimension => Dimension.Curve;
 
         
-        public override string GeometryType => CurvedGeometry.TypeNameMultiSurface;
+        public override string GeometryType => CurveGeometry.TypeNameMultiSurface;
 
         /// <inheritdoc cref="Geometry.OgcGeometryType"/>>
         public override OgcGeometryType OgcGeometryType => OgcGeometryType.MultiPolygon;
@@ -92,7 +92,7 @@ namespace NetTopologySuite.Geometries
             get
             {
                 if (IsEmpty)
-                    return new LineString(null, (CurvedGeometryFactory)Factory);
+                    return new LineString(null, (CurveGeometryFactory)Factory);
 
                 var allRings = new List<Geometry>();
                 for (int i = 0; i < NumGeometries; i++)
@@ -119,7 +119,7 @@ namespace NetTopologySuite.Geometries
             var surfaces = new Geometry[NumGeometries];
             for (int i = 0; i < surfaces.Length; i++)
                 surfaces[i] = GetGeometryN(i).Reverse();
-            return new MultiSurface(surfaces, (CurvedGeometryFactory)Factory, ArcSegmentLength);
+            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory, ArcSegmentLength);
         }
     }
 }

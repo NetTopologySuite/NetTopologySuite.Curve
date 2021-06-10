@@ -16,7 +16,7 @@ namespace NetTopologySuite.Geometries
     /// Instances of this class are thread-safe.
     /// </remarks>
     [Serializable]
-    public class CurvedGeometryFactory : GeometryFactoryEx
+    public class CurveGeometryFactory : GeometryFactoryEx
     {
         /// <summary>
         /// Creates an instance of this class using the provided arguments
@@ -27,7 +27,7 @@ namespace NetTopologySuite.Geometries
         /// <param name="services">A specialized <see cref="NtsGeometryServices"/> object for curved geometry.</param>
         /// <param name="arcSegmentLength">A default arc segment length. A value of <c>0d</c> will lead to arc segment
         /// length to be computed from <see cref="Operation.Buffer.BufferParameters.DefaultQuadrantSegments"/>.</param>
-        public CurvedGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory,
+        public CurveGeometryFactory(PrecisionModel precisionModel, int srid, CoordinateSequenceFactory coordinateSequenceFactory,
             NtsCurvedGeometryServices services, double arcSegmentLength)
             : base(precisionModel, srid, coordinateSequenceFactory, services)
         {
@@ -136,14 +136,14 @@ namespace NetTopologySuite.Geometries
         /// Creates an empty <c>CURVEDPOLYGON</c> geometry.
         /// </summary>
         /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvedPolygon CreateCurvedPolygon() => CreateCurvedPolygon(null);
+        public CurvePolygon CreateCurvedPolygon() => CreateCurvedPolygon(null);
 
         /// <summary>
         /// Creates a <c>CURVEDPOLYGON</c> geometry based on the provided <paramref name="exteriorRing"/> geometry.
         /// </summary>
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
         /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvedPolygon CreateCurvedPolygon(Geometry exteriorRing)
+        public CurvePolygon CreateCurvedPolygon(Geometry exteriorRing)
         {
             return CreateCurvedPolygon(exteriorRing, Array.Empty<Geometry>());
         }
@@ -155,7 +155,7 @@ namespace NetTopologySuite.Geometries
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
         /// <param name="interiorRings">An array of geometries defining the interior rings.</param>
         /// <returns>An empty <c>CURVEDPOLYGON</c> geometry</returns>
-        public CurvedPolygon CreateCurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings)
+        public CurvePolygon CreateCurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings)
         {
             if (exteriorRing == null)
                 exteriorRing = CreateLinearRing();
@@ -183,7 +183,7 @@ namespace NetTopologySuite.Geometries
             if (exteriorRing.IsEmpty && interiorRings.Count(t => !t.IsEmpty) > 0)
                 throw new ArgumentException("exteriorRing is empty but interiorRings are not", nameof(interiorRings));
 
-            return new CurvedPolygon(exteriorRing, interiorRings, this);
+            return new CurvePolygon(exteriorRing, interiorRings, this);
         }
 
         /// <summary>

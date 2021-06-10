@@ -8,11 +8,11 @@ namespace NetTopologySuite.Geometries
     /// A curved geometry made up of several <see cref="ICurve"/>s.
     /// </summary>
     [Serializable]
-    public class CompoundCurve : CurvedLineString
+    public class CompoundCurve : CurveLineString
     {
         private readonly Geometry[] _geometries;
 
-        internal CompoundCurve(Geometry[] geometries, CurvedGeometryFactory factory)
+        internal CompoundCurve(Geometry[] geometries, CurveGeometryFactory factory)
             : base(factory)
         {
             _geometries = geometries;
@@ -36,7 +36,7 @@ namespace NetTopologySuite.Geometries
                 return false;
 
             var cc = (CompoundCurve)other;
-            for (int i = 0; i < NumGeometries; i++)
+            for (int i = 0; i < Curves.Count; i++)
             {
                 if (!Curves[i].EqualsExact(cc.Curves[i], tolerance))
                     return false;
@@ -52,7 +52,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < NumGeometries; i++)
                 res[i] = _geometries[i].Copy();
 
-            return new CompoundCurve(res, (CurvedGeometryFactory)Factory);
+            return new CompoundCurve(res, (CurveGeometryFactory)Factory);
         }
 
         /// <inheritdoc cref="ComputeEnvelopeInternal"/>
@@ -123,7 +123,7 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="GeometryType"/>
         public override string GeometryType
         {
-            get => CurvedGeometry.TypeNameCompoundCurve;
+            get => CurveGeometry.TypeNameCompoundCurve;
         }
 
         /// <inheritdoc cref="OgcGeometryType"/>

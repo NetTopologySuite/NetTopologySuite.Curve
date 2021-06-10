@@ -5,11 +5,11 @@ namespace NetTopologySuite.Geometries
     /// <summary>
     /// Curved geometry parameter
     /// </summary>
-    internal class CurvedGeometry
+    internal class CurveGeometry
     {
         public const string TypeNameCircularString = "CircularString";
         public const string TypeNameCompoundCurve = "CompoundCurve";
-        public const string TypeNameCurvedPolygon = "CurvedPolygon";
+        public const string TypeNameCurvedPolygon = "CurvePolygon";
         public const string TypeNameMultiCurve = "MultiCurve";
         public const string TypeNameMultiSurface = "MultiSurface";
     }
@@ -19,14 +19,14 @@ namespace NetTopologySuite.Geometries
     /// </summary>
     /// <typeparam name="T">The type of the flattened geometry</typeparam>
     [Serializable]
-    public abstract class CurvedGeometry<T> : Geometry, ICurvedGeometry<T> where T:Geometry
+    public abstract class CurveGeometry<T> : Geometry, ICurvedGeometry<T> where T:Geometry
     {
 
         /// <summary>
         /// Creates an instance of this class
         /// </summary>
         /// <param name="factory">A factory</param>
-        protected CurvedGeometry(CurvedGeometryFactory factory)
+        protected CurveGeometry(CurveGeometryFactory factory)
             : base(factory)
         {
         }
@@ -37,7 +37,7 @@ namespace NetTopologySuite.Geometries
         /// </summary>
         public double ArcSegmentLength
         {
-            get => ((CurvedGeometryFactory) Factory).ArcSegmentLength;
+            get => ((CurveGeometryFactory) Factory).ArcSegmentLength;
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace NetTopologySuite.Geometries
 
             public void Filter(Geometry geom)
             {
-                if (geom is CurvedGeometry<T> curve)
+                if (geom is CurveGeometry<T> curve)
                 {
                     //TODO 
                 }
@@ -188,7 +188,7 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="IsEquivalentClass"/>
         protected sealed override bool IsEquivalentClass(Geometry other)
         {
-            return other is CurvedGeometry<T> || other is T;
+            return other is CurveGeometry<T> || other is T;
         }
 
         /// <inheritdoc cref="ConvexHull"/>

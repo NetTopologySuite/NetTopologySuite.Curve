@@ -3,12 +3,12 @@ using NetTopologySuite.Operation.OverlayNG;
 
 namespace NetTopologySuite.Geometries
 {
-    public class CurvedGeometryOverlay
+    public class CurveGeometryOverlay
     {
-        public static GeometryOverlay CurveV2 => new CurvedGeometryOverlayV2();
+        public static GeometryOverlay CurveV2 => new CurveGeometryOverlayV2();
 
 
-        private sealed class CurvedGeometryOverlayV2 : GeometryOverlay
+        private sealed class CurveGeometryOverlayV2 : GeometryOverlay
         {
             protected override Geometry Overlay(Geometry geom0, Geometry geom1, SpatialFunction opCode)
             {

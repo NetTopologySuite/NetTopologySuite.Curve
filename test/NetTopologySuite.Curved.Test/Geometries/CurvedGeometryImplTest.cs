@@ -21,9 +21,12 @@ namespace NetTopologySuite.Test.Geometries
             LengthTolerance = lengthTolerance;
         }
 
-        protected CurvedGeometryFactory Factory
+        protected static LineSegment CreateDirectedSegment(Coordinate p0, double dx, double dy) =>
+            new LineSegment(p0, new Coordinate(p0.X + dx, p0.Y + dy));
+
+        protected CurveGeometryFactory Factory
         {
-            get { return (CurvedGeometryFactory) _instance.CreateGeometryFactory(); }
+            get { return (CurveGeometryFactory) _instance.CreateGeometryFactory(); }
         }
 
         protected abstract Geometry CreateGeometry();
@@ -62,6 +65,7 @@ namespace NetTopologySuite.Test.Geometries
         public void TestSerializeability()
         {
             var geom1 = CreateGeometry();
+            TestContext.WriteLine(geom1.ToText());
             Geometry geom2 = null;
 
             var old = NtsGeometryServices.Instance;
@@ -76,6 +80,9 @@ namespace NetTopologySuite.Test.Geometries
             }
 
             Assert.That(geom2, Is.Not.Null);
+            Assert.That(geom2.EqualsExact(geom1));
+
+            TestContext.WriteLine(geom2.ToText());
 
             NtsGeometryServices.Instance = old;
         }

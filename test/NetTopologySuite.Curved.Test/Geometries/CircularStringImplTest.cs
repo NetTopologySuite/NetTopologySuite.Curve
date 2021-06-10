@@ -122,7 +122,7 @@ namespace NetTopologySuite.Test.Geometries
             if (length < double.Epsilon)
                 return;
 
-            double arcSegmentLength = ((CurvedGeometryFactory)cs.Factory).ArcSegmentLength;
+            double arcSegmentLength = ((CurveGeometryFactory)cs.Factory).ArcSegmentLength;
             if (arcSegmentLength < double.Epsilon)
                 return;
 

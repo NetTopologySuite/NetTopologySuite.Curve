@@ -14,7 +14,7 @@ namespace NetTopologySuite
         /// </summary>
         /// <remarks>
         /// The <see cref="GeometryOverlay"/> argument from <see cref="NtsCurvedGeometryServices"/> constructor is set internally to
-        /// <see cref="CurvedGeometryOverlay.CurveV2"/>.
+        /// <see cref="CurveGeometryOverlay.CurveV2"/>.
         /// </remarks>
         /// <param name="coordinateSequenceFactory">A coordinate sequence factory</param>
         /// <param name="precisionModel">A precision model</param>
@@ -24,7 +24,7 @@ namespace NetTopologySuite
         public NtsCurvedGeometryServices(CoordinateSequenceFactory coordinateSequenceFactory,
             PrecisionModel precisionModel, int srid, 
             CoordinateEqualityComparer coordinateEqualityComparer, double defaultArcSegmentLength)
-            :base(coordinateSequenceFactory, precisionModel, srid, CurvedGeometryOverlay.CurveV2, coordinateEqualityComparer)
+            :base(coordinateSequenceFactory, precisionModel, srid, CurveGeometryOverlay.CurveV2, coordinateEqualityComparer)
         {
             if (defaultArcSegmentLength < 0d)
                 throw new ArgumentOutOfRangeException($"Must not be negative", nameof(defaultArcSegmentLength));
@@ -46,7 +46,7 @@ namespace NetTopologySuite
         protected override GeometryFactory CreateGeometryFactoryCore(PrecisionModel precisionModel, int srid,
             CoordinateSequenceFactory coordinateSequenceFactory)
         {
-            return new CurvedGeometryFactory(precisionModel, srid, coordinateSequenceFactory, this,
+            return new CurveGeometryFactory(precisionModel, srid, coordinateSequenceFactory, this,
                 DefaultArcSegmentLength);
         }
     }

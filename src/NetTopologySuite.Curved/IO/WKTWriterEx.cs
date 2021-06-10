@@ -36,6 +36,15 @@ namespace NetTopologySuite.IO
             }
         }
 
+        /// <inheritdoc cref="WKTWriter.WriteFormatted(Geometry, TextWriter)"/>
+        /// <remarks>Additionally handles
+        /// <list type="bullet">
+        /// <item><description><c>CircularString</c>,</description></item>
+        /// <item><description><c>CompoundCurve</c>,</description></item>
+        /// <item><description><c>CurvePolygon</c>,</description></item>
+        /// <item><description><c>MultiCurve</c> and</description></item>
+        /// <item><description><c>MultiSurface</c></description></item>
+        /// </list></remarks>
         public override void WriteFormatted(Geometry geometry, TextWriter writer)
         {
             if (geometry is ICurvedGeometry)
@@ -79,8 +88,8 @@ namespace NetTopologySuite.IO
                 case CompoundCurve cc:
                     AppendCompoundCurveTaggedText(cc, outputOrdinates, useFormatting, level, false, writer, ordinateFormat);
                     break;
-                case CurvedPolygon cp:
-                    AppendCurvedPolygonTaggedText(cp, outputOrdinates, useFormatting, level, writer, ordinateFormat);
+                case CurvePolygon cp:
+                    AppendCurvePolygonTaggedText(cp, outputOrdinates, useFormatting, level, false, writer, ordinateFormat);
                     break;
                 case MultiCurve mc:
                     AppendMultiCurveTaggedText(mc, outputOrdinates, useFormatting, level, writer, ordinateFormat);
@@ -108,24 +117,40 @@ namespace NetTopologySuite.IO
                 writer.Write(WKTConstants.EMPTY);
                 return;
             }
-            writer.Write("(");
 
+            // Write curves
+            writer.Write("(");
             for (int i = 0; i < cc.Curves.Count; i++)
             {
-                if (i > 0) writer.Write(",");
-                if (cc.Curves[i] is CircularString cs)
-                    AppendCircularStringTaggedText(cs, outputOrdinates, useFormatting, level, true, writer, ordinateFormat);
-                else if (cc.Curves[i] is LineString ls)
-                    AppendSequenceText(ls.CoordinateSequence, outputOrdinates, useFormatting, level, true, writer, ordinateFormat);
-                else
-                    Assert.ShouldNeverReachHere("Invalid geometry in CompoundCurve");
+                if (i > 0) writer.Write(", ");
+                AppendCurveText(cc.Curves[i], outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
             }
             writer.Write(")");
         }
 
-        private void AppendCurvedPolygonTaggedText(CurvedPolygon cp, Ordinates outputOrdinates, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendCurveText(Geometry curve, Ordinates outputOrdinates, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
         {
-            writer.Write(@"CURVEDPOLYGON ");
+            switch (curve)
+            {
+                case LineString ls:
+                    AppendSequenceText(ls.CoordinateSequence, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+                    break;
+                case CircularString cs:
+                    AppendCircularStringTaggedText(cs, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+                    break;
+                case CompoundCurve cc:
+                    AppendCompoundCurveTaggedText(cc, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+                    break;
+                default:
+                    Assert.ShouldNeverReachHere($"Invalid geometry type for curve: {curve.GeometryType}");
+                    break;
+
+            }
+
+        }
+        private void AppendCurvePolygonTaggedText(CurvePolygon cp, Ordinates outputOrdinates, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
+        {
+            writer.Write(@"CURVEPOLYGON ");
             AppendOrdinateText(outputOrdinates, writer);
 
             if (cp.IsEmpty)
@@ -133,6 +158,10 @@ namespace NetTopologySuite.IO
                 writer.Write(WKTConstants.EMPTY);
                 return;
             }
+
+            writer.Write("(");
+            AppendCurveText(cp.ExteriorRing, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+            writer.Write(")");
         }
 
         private void AppendMultiCurveTaggedText(MultiCurve mc, Ordinates outputOrdinates, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
@@ -146,18 +175,19 @@ namespace NetTopologySuite.IO
                 return;
             }
 
+            int level2 = level;
+            bool doIndent = false;
             writer.Write("(");
             for (int i = 0; i < mc.NumGeometries; i++)
             {
-                if (i > 0) writer.Write(",");
+                if (i > 0)
+                {
+                    writer.Write(", ");
+                    level2 = level + 1;
+                    doIndent = true;
+                }
                 var testGeom = mc.GetGeometryN(i);
-                if (testGeom is LineString ls)
-                    AppendSequenceText(ls.CoordinateSequence, outputOrdinates, useFormatting, level + 1, true, writer, ordinateFormat);
-                else if (testGeom is CircularString cs)
-                    AppendCircularStringTaggedText(cs, outputOrdinates, useFormatting, level + 1, true, writer, ordinateFormat);
-                else if (testGeom is CompoundCurve cc)
-                    AppendCompoundCurveTaggedText(cc, outputOrdinates, useFormatting, level + 1, true, writer, ordinateFormat);
-
+                AppendCurveText(testGeom, outputOrdinates, useFormatting, level2, doIndent, writer, ordinateFormat);
             }
             writer.Write(")");
         }
@@ -172,15 +202,25 @@ namespace NetTopologySuite.IO
                 writer.Write(WKTConstants.EMPTY);
                 return;
             }
+
+            int level2 = level;
+            bool doIndent = false;
             writer.Write("(");
             for (int i = 0; i < ms.NumGeometries; i++)
             {
-                if (i > 0) writer.Write(",");
+                if (i > 0)
+                {
+                    writer.Write(", ");
+                    level2 = level + 1;
+                    doIndent = true;
+                }
                 var testGeom = ms.GetGeometryN(i);
                 if (testGeom is Polygon p)
-                    AppendPolygonText(p, outputOrdinates, useFormatting, level + 1, true, writer, ordinateFormat);
-                else if (testGeom is CurvedPolygon cp)
-                    AppendCurvedPolygonTaggedText(cp, outputOrdinates, useFormatting, level+1, writer, ordinateFormat);
+                    AppendPolygonText(p, outputOrdinates, useFormatting, level2, doIndent, writer, ordinateFormat);
+                else if (testGeom is CurvePolygon cp)
+                    AppendCurvePolygonTaggedText(cp, outputOrdinates, useFormatting, level2, doIndent, writer, ordinateFormat);
+                else
+                    Assert.ShouldNeverReachHere($"Invalid geometry type for MultiSurface member: {testGeom.GeometryType}");
             }
             writer.Write(")");
         }

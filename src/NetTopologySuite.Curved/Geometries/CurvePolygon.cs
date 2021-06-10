@@ -4,14 +4,15 @@ using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.Geometries
 {
-    public class CurvedPolygon : CurvedGeometry<Polygon>, ISurface<Geometry>
+    [Serializable]
+    public class CurvePolygon : CurveGeometry<Polygon>, ISurface<Geometry>
     {
-        public CurvedPolygon(CompoundCurve exteriorRing, CurvedGeometryFactory factory)
+        public CurvePolygon(CompoundCurve exteriorRing, CurveGeometryFactory factory)
             : this(exteriorRing, Array.Empty<Geometry>(), factory)
         {
         }
 
-        internal CurvedPolygon(Geometry exteriorRing, Geometry[] interiorRings, CurvedGeometryFactory factory)
+        internal CurvePolygon(Geometry exteriorRing, Geometry[] interiorRings, CurveGeometryFactory factory)
             : base(factory)
         {
             ExteriorRing = exteriorRing;
@@ -46,7 +47,7 @@ namespace NetTopologySuite.Geometries
 
         public override bool EqualsExact(Geometry other, double tolerance)
         {
-            if (other is CurvedPolygon cp)
+            if (other is CurvePolygon cp)
             {
                 if (!ExteriorRing.EqualsExact(cp.ExteriorRing, tolerance))
                     return false;
@@ -57,6 +58,8 @@ namespace NetTopologySuite.Geometries
                 for (int i = 0; i < InteriorRings.Count; i++)
                     if (!InteriorRings[i].EqualsExact(cp.InteriorRings[i]))
                         return false;
+
+                return true;
             }
 
             return Flatten().EqualsExact(other);
@@ -68,7 +71,7 @@ namespace NetTopologySuite.Geometries
             for (int i = 0; i < InteriorRings.Count; i++)
                 interiorRings[i] = InteriorRings[i].Copy();
 
-            var res = new CurvedPolygon(ExteriorRing.Copy(), interiorRings, (CurvedGeometryFactory)Factory);
+            var res = new CurvePolygon(ExteriorRing.Copy(), interiorRings, (CurveGeometryFactory)Factory);
             return res;
         }
 
@@ -82,7 +85,7 @@ namespace NetTopologySuite.Geometries
             if (!(o is ISurface))
                 throw new ArgumentException("Not a surface", nameof(o));
 
-            if (o is CurvedPolygon cp)
+            if (o is CurvePolygon cp)
             {
                 int comp = ExteriorRing.CompareToSameClass(cp.ExteriorRing);
                 if (comp != 0) return comp;
@@ -107,7 +110,7 @@ namespace NetTopologySuite.Geometries
             if (!(o is ISurface))
                 throw new ArgumentException("Not a surface", nameof(o));
 
-            if (o is CurvedPolygon cp)
+            if (o is CurvePolygon cp)
             {
                 int comp = ExteriorRing.CompareToSameClass(cp.ExteriorRing, comparer);
                 if (comp != 0) return comp;
@@ -129,7 +132,7 @@ namespace NetTopologySuite.Geometries
 
         public override string GeometryType
         {
-            get => CurvedGeometry.TypeNameCurvedPolygon;
+            get => CurveGeometry.TypeNameCurvedPolygon;
         }
 
         public override OgcGeometryType OgcGeometryType
