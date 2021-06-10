@@ -26,9 +26,9 @@ namespace NetTopologySuite.IO
 
         public override void Write(Geometry geometry, TextWriter writer)
         {
-            if (geometry is ICurvedGeometry)
+            if (geometry is ICurveGeometry)
             {
-                WriteCurvedFormatted(geometry, false, writer, PrecisionModel);
+                WriteCurveFormatted(geometry, false, writer, PrecisionModel);
             }
             else
             {
@@ -47,9 +47,9 @@ namespace NetTopologySuite.IO
         /// </list></remarks>
         public override void WriteFormatted(Geometry geometry, TextWriter writer)
         {
-            if (geometry is ICurvedGeometry)
+            if (geometry is ICurveGeometry)
             {
-                WriteCurvedFormatted(geometry, true, writer, PrecisionModel);
+                WriteCurveFormatted(geometry, true, writer, PrecisionModel);
             }
             else
             {
@@ -57,7 +57,7 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private void WriteCurvedFormatted(Geometry geometry, bool useFormatting, TextWriter writer, PrecisionModel precisionModel)
+        private void WriteCurveFormatted(Geometry geometry, bool useFormatting, TextWriter writer, PrecisionModel precisionModel)
         {
             if (geometry == null)
                 throw new ArgumentNullException(nameof(geometry));
@@ -72,10 +72,10 @@ namespace NetTopologySuite.IO
             var outputOrdinates = GetOutputOrdinates(geometry);
 
             // append the WKT
-            AppendCurvedGeometryTaggedText(geometry, outputOrdinates, useFormatting, 0, writer, ordinateFormat);
+            AppendCurveGeometryTaggedText(geometry, outputOrdinates, useFormatting, 0, writer, ordinateFormat);
         }
 
-        private void AppendCurvedGeometryTaggedText(Geometry geometry, Ordinates outputOrdinates, bool useFormatting,
+        private void AppendCurveGeometryTaggedText(Geometry geometry, Ordinates outputOrdinates, bool useFormatting,
             int level, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             Indent(useFormatting, level, writer);
@@ -161,6 +161,12 @@ namespace NetTopologySuite.IO
 
             writer.Write("(");
             AppendCurveText(cp.ExteriorRing, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+
+            for (int i = 0; i < cp.NumInteriorRings; i++)
+            {
+                writer.Write(", ");
+                AppendCurveText(cp.GetInteriorRingN(i), outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+            }
             writer.Write(")");
         }
 
