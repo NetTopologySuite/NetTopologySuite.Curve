@@ -1,7 +1,6 @@
 using System;
 using NetTopologySuite.Algorithm;
 using NetTopologySuite.Mathematics;
-using NetTopologySuite.Operation.Buffer;
 
 namespace NetTopologySuite.Geometries
 {
@@ -19,6 +18,24 @@ namespace NetTopologySuite.Geometries
         /// Angle value that indicates that a CircularString is actually a line
         /// </summary>
         public const double CollinearAngle = double.NaN;
+
+        private static int _defaultQuadrantSegments = 12;
+
+        /// <summary>
+        /// Gets or sets a value indicating how many segments approximate the circle per segment.
+        /// </summary>
+        /// <remarks>The default value is <c>12</c></remarks>.
+        public static int DefaultQuadrantSegments
+        {
+            get => _defaultQuadrantSegments;
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException(nameof(value), "Must be positive");
+
+                _defaultQuadrantSegments = value;
+            }
+        }
 
         private readonly int _startOffset;
         private readonly CoordinateSequence _sequence;
@@ -196,7 +213,7 @@ namespace NetTopologySuite.Geometries
                 angleP2 += AngleUtility.PiTimes2;
 
             if (arcStepLength == 0d)
-                arcStepLength = AngleUtility.PiOver2 * Radius / BufferParameters.DefaultQuadrantSegments;
+                arcStepLength = AngleUtility.PiOver2 * Radius / DefaultQuadrantSegments;
 
             // Create buffer with p0
             var cl = new CoordinateList {p0};
