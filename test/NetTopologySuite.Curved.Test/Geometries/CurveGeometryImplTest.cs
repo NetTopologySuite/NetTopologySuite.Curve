@@ -6,13 +6,13 @@ using NUnit.Framework;
 
 namespace NetTopologySuite.Test.Geometries
 {
-    public abstract class CurvedGeometryImplTest
+    public abstract class CurveGeometryImplTest
     {
         protected double LengthTolerance { get; }
 
         private readonly NtsGeometryServices _instance; 
 
-        public CurvedGeometryImplTest(double arcSegmentLength, double lengthTolerance)
+        public CurveGeometryImplTest(double arcSegmentLength, double lengthTolerance)
         {
             _instance = new NtsCurveGeometryServices(
                 CoordinateArraySequenceFactory.Instance, new PrecisionModel(PrecisionModels.Floating), 0,

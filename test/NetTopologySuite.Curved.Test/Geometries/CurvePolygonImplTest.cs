@@ -9,10 +9,10 @@ using NUnit.Framework.Constraints;
 namespace NetTopologySuite.Test.Geometries
 {
     [TestFixture(0.001d, 5E-7)]
-    public class CurvedPolygonImplTest : CurvedGeometryImplTest
+    public class CurvePolygonImplTest : CurveGeometryImplTest
     {
 
-        public CurvedPolygonImplTest(double arcSegmentLength, double lengthTolerance)
+        public CurvePolygonImplTest(double arcSegmentLength, double lengthTolerance)
             : base(arcSegmentLength, lengthTolerance)
         {
         }

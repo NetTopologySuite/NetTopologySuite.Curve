@@ -6,7 +6,7 @@ namespace NetTopologySuite.Test.Geometries
 {
     [TestFixture(0d, 5E-4)]
     [TestFixture(0.001d, 5E-7)]
-    public class CompoundCurveImplTest : CurvedGeometryImplTest
+    public class CompoundCurveImplTest : CurveGeometryImplTest
     {
         public CompoundCurveImplTest(double arcSegmentLength, double lengthTolerance)
             :base(arcSegmentLength, lengthTolerance)
