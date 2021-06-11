@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using NetTopologySuite.Geometries;
+﻿using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NUnit.Framework;
 
@@ -19,7 +15,12 @@ namespace NetTopologySuite.Test.IO
             _instance.WKTWriter.OutputOrdinates = Ordinates.AllOrdinates;
         }
 
-        //
+        /*
+           The following WKT definitions were taken and adapted from
+           * https://docs.microsoft.com/en-us/sql/relational-databases/spatial/circularstring
+           * https://docs.microsoft.com/en-us/sql/relational-databases/spatial/compoundcurve
+           * https://docs.microsoft.com/en-us/sql/relational-databases/spatial/curvepolygon
+         */
         // CircularString
         [TestCase("CIRCULARSTRING EMPTY")]
         [TestCase("CIRCULARSTRING (2 0, 1 1, 0 0)")]
@@ -37,7 +38,7 @@ namespace NetTopologySuite.Test.IO
         [TestCase("COMPOUNDCURVE ((1 1, 1 3, 3 3, 3 1, 1 1))")]
         [TestCase("COMPOUNDCURVE (CIRCULARSTRING (0 2, 2 0, 4 2), CIRCULARSTRING (4 2, 2 4, 0 2))")]
         [TestCase("COMPOUNDCURVE ((3 5, 3 3), CIRCULARSTRING (3 3, 5 1, 7 3), (7 3, 7 5), CIRCULARSTRING (7 5, 5 7, 3 5))")]
-        //[TestCase("COMPOUNDCURVE ZM(CIRCULARSTRING (7 5 4 2, 5 7 4 2, 3 5 4 2), (3 5 4 2, 8 7 4 2))")]
+        [TestCase("COMPOUNDCURVE ZM(CIRCULARSTRING (7 5 4 2, 5 7 4 2, 3 5 4 2), (3 5 4 2, 8 7 4 2))")]
         [TestCase("COMPOUNDCURVE (CIRCULARSTRING EMPTY)", "System.ArgumentException: Contains null or empty geometry! (Parameter 'linealGeometries')")]
         [TestCase("COMPOUNDCURVE (CIRCULARSTRING (1 0, 0 1, -1 0), (1 0, 2 0))", "System.ArgumentException: Geometries are not in a sequence (Parameter 'linealGeometries')")]
         //

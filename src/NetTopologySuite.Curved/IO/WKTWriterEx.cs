@@ -1,43 +1,64 @@
-using System;
 using System.IO;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.IO
 {
+    /// <summary>
+    /// Outputs the textual representation of a <see cref="Geometry" />.
+    /// The <see cref="WKTWriter" /> outputs coordinates rounded to the precision
+    /// model. No more than the maximum number of necessary decimal places will be
+    /// output.
+    /// The Well-known Text format is defined in the <A
+    /// HREF="http://www.opengis.org/techno/specs.htm">OpenGIS Simple Features
+    /// Specification for SQL</A>.
+    /// <para>
+    /// <remarks>This implementation additionally handles
+    /// <list type="bullet">
+    /// <item><description><c>CircularString</c>,</description></item>
+    /// <item><description><c>CompoundCurve</c>,</description></item>
+    /// <item><description><c>CurvePolygon</c>,</description></item>
+    /// <item><description><c>MultiCurve</c> and</description></item>
+    /// <item><description><c>MultiSurface</c></description></item>
+    /// </list></remarks>
+    /// </para>
+    /// </summary>
     public class WKTWriterEx : WKTWriter
     {
         public WKTWriterEx ForSqlServer()
         {
-            return new WKTWriterEx(4, true);}
+            return new WKTWriterEx(4, true);
+        }
 
+        /// <summary>
+        /// Creates an instance of this class which is writing at most 2 dimensions.
+        /// </summary>
         public WKTWriterEx()
             : this(2)
         {
         }
+
+        /// <summary>
+        /// Creates an instance of this class which is writing at most <paramref name="outputDimension"/> dimensions.
+        /// </summary>
         public WKTWriterEx(int outputDimension)
-            : this(2, false)
+            : base(outputDimension, false)
         {
         }
-        public WKTWriterEx(int outputDimension, bool mssql)
+
+        /// <summary>
+        /// Creates an instance of this class which is writing at most
+        /// <paramref name="outputDimension"/> dimensions.
+        /// </summary>
+        /// <param name="outputDimension">Number of dimensions written</param>
+        /// <param name="mssql">A flag indicating if SQLServer WKT should be written</param>
+        protected WKTWriterEx(int outputDimension, bool mssql)
             : base(outputDimension, mssql)
         {
         }
 
-        public override void Write(Geometry geometry, TextWriter writer)
-        {
-            if (geometry is ICurveGeometry)
-            {
-                WriteCurveFormatted(geometry, false, writer, PrecisionModel);
-            }
-            else
-            {
-                base.Write(geometry, writer);
-            }
-        }
-
-        /// <inheritdoc cref="WKTWriter.WriteFormatted(Geometry, TextWriter)"/>
-        /// <remarks>Additionally handles
+        /// <inheritdoc cref="WKTWriter.AppendOtherGeometryTaggedText"/>
+        /// <remarks>This implementation additionally handles
         /// <list type="bullet">
         /// <item><description><c>CircularString</c>,</description></item>
         /// <item><description><c>CompoundCurve</c>,</description></item>
@@ -45,72 +66,42 @@ namespace NetTopologySuite.IO
         /// <item><description><c>MultiCurve</c> and</description></item>
         /// <item><description><c>MultiSurface</c></description></item>
         /// </list></remarks>
-        public override void WriteFormatted(Geometry geometry, TextWriter writer)
+        protected override bool AppendOtherGeometryTaggedText(Geometry geometry, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level,
+            TextWriter writer, OrdinateFormat ordinateFormat)
         {
-            if (geometry is ICurveGeometry)
-            {
-                WriteCurveFormatted(geometry, true, writer, PrecisionModel);
-            }
-            else
-            {
-                base.WriteFormatted(geometry, writer);
-            }
-        }
-
-        private void WriteCurveFormatted(Geometry geometry, bool useFormatting, TextWriter writer, PrecisionModel precisionModel)
-        {
-            if (geometry == null)
-                throw new ArgumentNullException(nameof(geometry));
-
-            // ensure we have a precision model
-            precisionModel = precisionModel ?? geometry.PrecisionModel;
-
-            // create the ordinate format
-            var ordinateFormat = CreateOrdinateFormat(precisionModel);
-
-            // evaluate the ordinates actually present in the geometry
-            var outputOrdinates = GetOutputOrdinates(geometry);
-
-            // append the WKT
-            AppendCurveGeometryTaggedText(geometry, outputOrdinates, useFormatting, 0, writer, ordinateFormat);
-        }
-
-        private void AppendCurveGeometryTaggedText(Geometry geometry, Ordinates outputOrdinates, bool useFormatting,
-            int level, TextWriter writer, OrdinateFormat ordinateFormat)
-        {
-            Indent(useFormatting, level, writer);
-            
             switch (geometry)
             {
                 case CircularString cs:
-                    AppendCircularStringTaggedText(cs, outputOrdinates, useFormatting, level, false, writer, ordinateFormat);
-                    break;
+                    AppendCircularStringTaggedText(cs, outputOrdinates, topLevel, useFormatting, level, false, writer, ordinateFormat);
+                    return true;
                 case CompoundCurve cc:
-                    AppendCompoundCurveTaggedText(cc, outputOrdinates, useFormatting, level, false, writer, ordinateFormat);
-                    break;
+                    AppendCompoundCurveTaggedText(cc, outputOrdinates, topLevel, useFormatting, level, false, writer, ordinateFormat);
+                    return true;
                 case CurvePolygon cp:
-                    AppendCurvePolygonTaggedText(cp, outputOrdinates, useFormatting, level, false, writer, ordinateFormat);
-                    break;
+                    AppendCurvePolygonTaggedText(cp, outputOrdinates, topLevel, useFormatting, level, false, writer, ordinateFormat);
+                    return true;
                 case MultiCurve mc:
-                    AppendMultiCurveTaggedText(mc, outputOrdinates, useFormatting, level, writer, ordinateFormat);
-                    break;
+                    AppendMultiCurveTaggedText(mc, outputOrdinates, topLevel, useFormatting, level, writer, ordinateFormat);
+                    return true;
                 case MultiSurface ms:
-                    AppendMultiSurfaceTaggedText(ms, outputOrdinates, useFormatting, level, writer, ordinateFormat);
-                    break;
+                    AppendMultiSurfaceTaggedText(ms, outputOrdinates, topLevel, useFormatting, level, writer, ordinateFormat);
+                    return true;
             }
+
+            return false;
         }
 
-        private void AppendCircularStringTaggedText(CircularString cs, Ordinates outputOrdinates, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendCircularStringTaggedText(CircularString cs, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             writer.Write(@"CIRCULARSTRING ");
-            AppendOrdinateText(outputOrdinates, writer);
+            if (topLevel) AppendOrdinateText(outputOrdinates, writer);
             AppendSequenceText(cs.ControlPoints, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
         }
 
-        private void AppendCompoundCurveTaggedText(CompoundCurve cc, Ordinates outputOrdinates, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendCompoundCurveTaggedText(CompoundCurve cc, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             writer.Write(@"COMPOUNDCURVE ");
-            AppendOrdinateText(outputOrdinates, writer);
+            if (topLevel) AppendOrdinateText(outputOrdinates, writer);
 
             if (cc.IsEmpty)
             {
@@ -136,10 +127,10 @@ namespace NetTopologySuite.IO
                     AppendSequenceText(ls.CoordinateSequence, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
                     break;
                 case CircularString cs:
-                    AppendCircularStringTaggedText(cs, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+                    AppendCircularStringTaggedText(cs, outputOrdinates, false, useFormatting, level, indentFirst, writer, ordinateFormat);
                     break;
                 case CompoundCurve cc:
-                    AppendCompoundCurveTaggedText(cc, outputOrdinates, useFormatting, level, indentFirst, writer, ordinateFormat);
+                    AppendCompoundCurveTaggedText(cc, outputOrdinates, false, useFormatting, level, indentFirst, writer, ordinateFormat);
                     break;
                 default:
                     Assert.ShouldNeverReachHere($"Invalid geometry type for curve: {curve.GeometryType}");
@@ -148,10 +139,10 @@ namespace NetTopologySuite.IO
             }
 
         }
-        private void AppendCurvePolygonTaggedText(CurvePolygon cp, Ordinates outputOrdinates, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendCurvePolygonTaggedText(CurvePolygon cp, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level, bool indentFirst, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             writer.Write(@"CURVEPOLYGON ");
-            AppendOrdinateText(outputOrdinates, writer);
+            if (topLevel) AppendOrdinateText(outputOrdinates, writer);
 
             if (cp.IsEmpty)
             {
@@ -170,10 +161,10 @@ namespace NetTopologySuite.IO
             writer.Write(")");
         }
 
-        private void AppendMultiCurveTaggedText(MultiCurve mc, Ordinates outputOrdinates, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendMultiCurveTaggedText(MultiCurve mc, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             writer.Write(@"MULTICURVE ");
-            AppendOrdinateText(outputOrdinates, writer);
+            if (topLevel) AppendOrdinateText(outputOrdinates, writer);
 
             if (mc.IsEmpty)
             {
@@ -198,10 +189,10 @@ namespace NetTopologySuite.IO
             writer.Write(")");
         }
 
-        private void AppendMultiSurfaceTaggedText(MultiSurface ms, Ordinates outputOrdinates, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
+        private void AppendMultiSurfaceTaggedText(MultiSurface ms, Ordinates outputOrdinates, bool topLevel, bool useFormatting, int level, TextWriter writer, OrdinateFormat ordinateFormat)
         {
             writer.Write(@"MULTISURFACE ");
-            AppendOrdinateText(outputOrdinates, writer);
+            if (topLevel) AppendOrdinateText(outputOrdinates, writer);
 
             if (ms.IsEmpty)
             {
@@ -224,7 +215,7 @@ namespace NetTopologySuite.IO
                 if (testGeom is Polygon p)
                     AppendPolygonText(p, outputOrdinates, useFormatting, level2, doIndent, writer, ordinateFormat);
                 else if (testGeom is CurvePolygon cp)
-                    AppendCurvePolygonTaggedText(cp, outputOrdinates, useFormatting, level2, doIndent, writer, ordinateFormat);
+                    AppendCurvePolygonTaggedText(cp, outputOrdinates, false, useFormatting, level2, doIndent, writer, ordinateFormat);
                 else
                     Assert.ShouldNeverReachHere($"Invalid geometry type for MultiSurface member: {testGeom.GeometryType}");
             }
