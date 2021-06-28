@@ -18,7 +18,7 @@ namespace NetTopologySuite.IO
             :base(geometryServices)
         {}
 
-        internal override Geometry ReadOtherGeometryText(string type, TokenStream tokens, GeometryFactory factory, Ordinates ordinateFlags)
+        protected override Geometry ReadOtherGeometryText(string type, TokenStream tokens, GeometryFactory factory, Ordinates ordinateFlags)
         {
             if (!(factory is CurveGeometryFactory curveFactory))
                 throw new ArgumentException("Not a CurveGeometryFactory", nameof(factory));
@@ -49,19 +49,19 @@ namespace NetTopologySuite.IO
             return base.ReadOtherGeometryText(type, tokens, factory, ordinateFlags);
         }
 
-        private Geometry ReadCircularStringText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
+        private CircularString ReadCircularStringText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
         {
             var sequence = GetCoordinateSequence(factory, tokens, ordinateFlags);
             return factory.CreateCircularString(sequence);
         }
 
-        private Geometry ReadCompoundCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
+        private CompoundCurve ReadCompoundCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
         {
             string nextToken = GetNextEmptyOrOpener(tokens);
             if (nextToken.Equals(WKTConstants.EMPTY))
                 return factory.CreateCompoundCurve();
 
-            var curves = new List<Geometry>();
+            var curves = new List<Curve>();
             do
             {
                 var curve = ReadCurveText(tokens, factory, ordinateFlags, false);
@@ -73,7 +73,7 @@ namespace NetTopologySuite.IO
             return factory.CreateCompoundCurve(curves.ToArray());
         }
 
-        private Geometry ReadCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags, bool allowCompoundCurve)
+        private Curve ReadCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags, bool allowCompoundCurve)
         {
             string current = LookAheadWord(tokens);
 
@@ -100,13 +100,13 @@ namespace NetTopologySuite.IO
         }
 
 
-        private Geometry ReadCurvePolygonText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
+        private CurvePolygon ReadCurvePolygonText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
         {
             string nextToken = GetNextEmptyOrOpener(tokens);
             if (nextToken.Equals(WKTConstants.EMPTY))
                 return factory.CreateCurvePolygon();
 
-            var holes = new List<Geometry>();
+            var holes = new List<Curve>();
             var shell = ReadCurveText(tokens, factory, ordinateFlags, true);
             nextToken = GetNextCloserOrComma(tokens);
             while (nextToken.Equals(","))
@@ -118,7 +118,7 @@ namespace NetTopologySuite.IO
             return factory.CreateCurvePolygon(shell, holes.ToArray());
         }
 
-        private Geometry ReadMultiCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
+        private MultiCurve ReadMultiCurveText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
         {
             string nextToken = GetNextEmptyOrOpener(tokens);
             if (nextToken.Equals(WKTConstants.EMPTY))
@@ -136,7 +136,7 @@ namespace NetTopologySuite.IO
             return factory.CreateMultiCurve(curves.ToArray());
         }
 
-        private Geometry ReadMultiSurfaceText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
+        private MultiSurface ReadMultiSurfaceText(TokenStream tokens, CurveGeometryFactory factory, Ordinates ordinateFlags)
         {
             string nextToken = GetNextEmptyOrOpener(tokens);
             if (nextToken.Equals(WKTConstants.EMPTY))

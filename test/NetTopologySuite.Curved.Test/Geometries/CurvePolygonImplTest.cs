@@ -20,14 +20,14 @@ namespace NetTopologySuite.Test.Geometries
         protected override Geometry CreateGeometry()
         {
             var circle = new Circle(0, 6, 2);
-            var shell = Factory.CreateCompoundCurve(new Geometry[]
+            var shell = Factory.CreateCompoundCurve(new Curve[]
             {
                 Factory.CreateLineString(new[] {new Coordinate(0, 0), new Coordinate(-2, 6)}),
                 Factory.CreateCircularString(new[] {new Coordinate(-2, 6), new Coordinate(0, 8), new Coordinate(2, 6)}),
                 Factory.CreateLineString(new[] {new Coordinate(2, 6), new Coordinate(0, 0)}),
             });
 
-            var holes = new Geometry[]
+            var holes = new Curve[]
             {
                 Factory.CreateCircularString(new[]
                 {

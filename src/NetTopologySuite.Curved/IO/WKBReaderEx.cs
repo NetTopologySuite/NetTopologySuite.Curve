@@ -3,10 +3,13 @@ using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class WKBReaderEx : WKBReader
     {
         /// <summary>
-        /// Creates an instace of this class using the provided <see cref="NtsCurveGeometryServices"/> object.
+        /// Creates an instance of this class using the provided <see cref="NtsCurveGeometryServices"/> object.
         /// </summary>
         /// <param name="geometryServices">A geometry services object.</param>
         public WKBReaderEx(NtsCurveGeometryServices geometryServices)
@@ -45,9 +48,9 @@ namespace NetTopologySuite.IO
             var factory = (CurveGeometryFactory)GeometryServices.CreateGeometryFactory(PrecisionModel, srid, SequenceFactory);
             int numCurves = ReadNumField(reader, "numCurves", ReasonableNumPoints(reader.BaseStream, cs));
 
-            var curves = new Geometry[numCurves];
+            var curves = new Curve[numCurves];
             for (int i = 0; i < numCurves; i++)
-                curves[i] = ReadGeometry(reader, srid);
+                curves[i] = (Curve)ReadGeometry(reader, srid);
             
             return factory.CreateCompoundCurve(curves);
         }
@@ -59,11 +62,11 @@ namespace NetTopologySuite.IO
             if (numRings == 0)
                 return factory.CreateCurvePolygon();
 
-            var exteriorRing = ReadGeometry(reader, srid);
+            var exteriorRing = (Curve)ReadGeometry(reader, srid);
 
-            var interiorRings = new Geometry[numRings - 1];
+            var interiorRings = new Curve[numRings - 1];
             for (int i = 0; i < numRings - 1; i++)
-                interiorRings[i] = ReadGeometry(reader, srid);
+                interiorRings[i] = (Curve)ReadGeometry(reader, srid);
 
             return factory.CreateCurvePolygon(exteriorRing, interiorRings);
         }

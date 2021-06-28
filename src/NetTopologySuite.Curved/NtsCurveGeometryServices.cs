@@ -24,23 +24,20 @@ namespace NetTopologySuite
         public NtsCurveGeometryServices(CoordinateSequenceFactory coordinateSequenceFactory,
             PrecisionModel precisionModel, int srid, 
             CoordinateEqualityComparer coordinateEqualityComparer, double defaultArcSegmentLength)
-            :base(coordinateSequenceFactory, precisionModel, srid, CurveGeometryOverlay.CurveV2, coordinateEqualityComparer)
+            : base(coordinateSequenceFactory, precisionModel, srid, CurveGeometryOverlay.CurveV2, coordinateEqualityComparer,
+                t => new WKTReaderEx((NtsCurveGeometryServices)t), t => new WKTWriterEx(3),
+                t => new WKBReaderEx((NtsCurveGeometryServices)t), t => new WKBWriterEx())
         {
             if (defaultArcSegmentLength < 0d)
                 throw new ArgumentOutOfRangeException($"Must not be negative", nameof(defaultArcSegmentLength));
 
             DefaultArcSegmentLength = defaultArcSegmentLength;
-
-            WKBReader = new WKBReaderEx(this);
-            WKBWriter = new WKBWriterEx();
-            WKTReader = new WKTReaderEx(this);
-            WKTWriter = new WKTWriterEx(3);
         }
 
         /// <summary>
         /// Gets a value indicating the default arc segment length that is used to flatten curved geometries.
         /// </summary>
-        public double DefaultArcSegmentLength { get; }
+        private double DefaultArcSegmentLength { get; }
 
         /// <inheritdoc cref="CreateGeometryFactoryCore"/>
         protected override GeometryFactory CreateGeometryFactoryCore(PrecisionModel precisionModel, int srid,

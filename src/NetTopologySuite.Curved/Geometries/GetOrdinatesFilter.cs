@@ -27,7 +27,7 @@ namespace NetTopologySuite.Geometries
         public GetOrdinatesFilter(Ordinate ordinate, int capacity)
         {
             _ordinate = ordinate;
-            _ordinates = new List<double>();
+            _ordinates = new List<double>(capacity);
         }
 
         public bool Done => false;

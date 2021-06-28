@@ -32,9 +32,11 @@ namespace NetTopologySuite.Test.Geometries
 
             var cs1 = Factory.CreateCircularString();
             var cs2 = Factory.CreateCircularString(pts);
+            var cs3 = Instance.WKTReader.Read("CIRCULARSTRING EMPTY");
 
             Assert.That(cs1.IsEmpty);
             Assert.That(cs2.IsEmpty);
+            Assert.That(cs3.IsEmpty);
         }
 
         [Test]
@@ -99,9 +101,6 @@ namespace NetTopologySuite.Test.Geometries
         {
             Assert.That(cs.Length, Is.EqualTo(length).Within(LengthTolerance));
 
-            for (int i = 0; i < pts.Length; i++)
-                Assert.That(cs.IsCoordinate(pts[i]));
-
             Assert.That(cs.IsEmpty, Is.EqualTo(pts.Length == 0));
 
             bool shouldBeClosed = pts.Length > 0
@@ -115,7 +114,7 @@ namespace NetTopologySuite.Test.Geometries
             Assert.That(cs.Area, Is.EqualTo(0d));
 
             // Flatten
-            var lineString = cs.Flatten();
+            var lineString = cs.Linearize();
             for (int i = 0; i < pts.Length; i++)
                 Assert.That(lineString.IsCoordinate(pts[i]));
 

@@ -18,11 +18,12 @@
 		<PackageTags>NTS;Topology;OGC;SFS;Curve</PackageTags>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<!--
+	<ItemGroup><!--
 		<PackageReference Include="NetTopologySuite" Version="2.2.0" />
 		-->
-  </ItemGroup>
+  
+	  <Compile Remove="Geometries\CurveLineString.cs" />
+	</ItemGroup>
 
   <ItemGroup>
     <Folder Include="IO\" />

@@ -4,64 +4,84 @@ using System.Collections.Generic;
 namespace NetTopologySuite.Geometries
 {
     /// <summary>
-    /// 
+    /// A collection of multiple <see cref="Surface{T}"/>s.
     /// </summary>
-    public class MultiSurface : GeometryCollection, ICurveGeometry<MultiPolygon>, IPolygonal
+    public class MultiSurface : GeometryCollection, ILinearizable<MultiPolygon>, IPolygonal
     {
-        private MultiPolygon _flattened;
-
-        public MultiSurface(Geometry[] geometries, CurveGeometryFactory factory)
+        internal MultiSurface(Geometry[] geometries, CurveGeometryFactory factory)
             : base(geometries, factory)
         {
             for (int i = 0; i < geometries.Length; i++)
             {
                 var testGeom = geometries[i];
-                if (!(testGeom is IPolygonal))
+                if (!(testGeom is ISurface))
                     throw new ArgumentException(nameof(geometries));
                 if (testGeom is GeometryCollection)
                     throw new ArgumentException(nameof(geometries));
             }
         }
 
-        Geometry ICurveGeometry.Flatten()
+
+        #region ILinearizable{T} implementation
+
+        /// <summary>
+        /// Gets a value indicating the default maximum length of arc segments that is
+        /// used when linearizing the curve.
+        /// </summary>
+        private double ArcSegmentLength
         {
-            return Flatten();
+            get => ((CurveGeometryFactory)Factory).ArcSegmentLength;
         }
 
-        public MultiPolygon Flatten(double arcSegmentLength)
-        {
-            if (arcSegmentLength == ArcSegmentLength && _flattened != null)
-                return _flattened;
+        /// <summary>
+        /// Gets a value indicating the linearized geometry
+        /// </summary>
+        private MultiPolygon Linearized { get; set; }
 
-            var geoms = new Polygon[NumGeometries];
-            for (int i = 0; i < NumGeometries; i++)
+        /// <inheritdoc cref="ILinearizable{T}.Linearize()"/>
+        /// <returns>A <c>MultiPolygon</c></returns>
+        public MultiPolygon Linearize()
+        {
+            return Linearize(ArcSegmentLength);
+        }
+
+        /// <inheritdoc cref="ILinearizable{T}.Linearize(double)"/>
+        /// <returns>A <c>MultiPolygon</c></returns>
+        public MultiPolygon Linearize(double arcSegmentLength)
+        {
+            if (arcSegmentLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(arcSegmentLength), "Must not be negative");
+
+            var linearized = Linearized;
+            if (arcSegmentLength == ArcSegmentLength && linearized != null)
+                return linearized;
+
+            if (IsEmpty)
+                linearized = Factory.CreateMultiPolygon();
+            else
             {
-                var testGeom = GetGeometryN(i);
-                if (testGeom is CurveGeometry<Polygon> c)
-                    geoms[i] = c.Flatten(arcSegmentLength);
-                else
-                    geoms[i] = (Polygon)testGeom;
+                var geoms = new Polygon[NumGeometries];
+                for (int i = 0; i < NumGeometries; i++)
+                {
+                    var testGeom = GetGeometryN(i);
+                    if (testGeom is ILinearizable<Polygon> c)
+                        geoms[i] = c.Linearize(arcSegmentLength);
+                    else
+                        geoms[i] = (Polygon) testGeom;
+                }
+
+                linearized = Factory.CreateMultiPolygon(geoms);
             }
 
-            return Factory.CreateMultiPolygon(geoms);
+            if (arcSegmentLength == ArcSegmentLength)
+                Linearized = linearized;
+
+            return linearized;
         }
 
-        public MultiPolygon Flatten()
-        {
-            return _flattened ?? (_flattened = Flatten(ArcSegmentLength));
-        }
+        #endregion
 
-        public double ArcSegmentLength { get; }
-
-        protected override Geometry CopyInternal()
-        {
-            var surfaces = new Geometry[NumGeometries];
-            for (int i = 0; i < surfaces.Length; i++)
-                surfaces[i] = GetGeometryN(i).Copy();
-
-            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory);
-        }
-
+        /// <inheritdoc cref="Geometry.SortIndex"/>
         protected override SortIndexValue SortIndex => SortIndexValue.MultiPolygon;
 
         /// <inheritdoc cref="Geometry.Dimension"/>
@@ -70,23 +90,25 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="Geometry.BoundaryDimension"/>
         public override Dimension BoundaryDimension => Dimension.Curve;
 
-        
+        /// <inheritdoc cref="Geometry.GeometryType"/>
         public override string GeometryType => CurveGeometry.TypeNameMultiSurface;
 
-        /// <inheritdoc cref="Geometry.OgcGeometryType"/>>
-        public override OgcGeometryType OgcGeometryType => OgcGeometryType.MultiPolygon;
+        /// <inheritdoc cref="Geometry.OgcGeometryType"/>
+        public override OgcGeometryType OgcGeometryType => OgcGeometryType.MultiSurface;
 
+        /// <inheritdoc cref="Geometry.IsSimple"/>
         public override bool IsSimple
         {
-            get => Flatten().IsSimple;
+            get => Linearize().IsSimple;
         }
 
+        /// <inheritdoc cref="Geometry.Boundary"/>
         public override Geometry Boundary
         {
             get
             {
                 if (IsEmpty)
-                    return new LineString(null, (CurveGeometryFactory)Factory);
+                    return Factory.CreateLineString();
 
                 var allRings = new List<Geometry>();
                 for (int i = 0; i < NumGeometries; i++)
@@ -101,6 +123,7 @@ namespace NetTopologySuite.Geometries
             }
         }
 
+        /// <inheritdoc cref="Geometry.EqualsExact(Geometry, double)"/>
         public override bool EqualsExact(Geometry other, double tolerance)
         {
             if (!IsEquivalentClass(other))
@@ -108,12 +131,39 @@ namespace NetTopologySuite.Geometries
             return base.EqualsExact(other, tolerance);
         }
 
+        /// <inheritdoc cref="Geometry.CopyInternal"/>
+        protected override Geometry CopyInternal()
+        {
+            var surfaces = new Geometry[NumGeometries];
+            for (int i = 0; i < surfaces.Length; i++)
+                surfaces[i] = GetGeometryN(i).Copy();
+
+            return new MultiSurface(surfaces, (CurveGeometryFactory)Factory);
+        }
+
+        /// <inheritdoc cref="Geometry.ReverseInternal"/>
         protected override Geometry ReverseInternal()
         {
             var surfaces = new Geometry[NumGeometries];
             for (int i = 0; i < surfaces.Length; i++)
                 surfaces[i] = GetGeometryN(i).Reverse();
             return new MultiSurface(surfaces, (CurveGeometryFactory)Factory);
+        }
+
+        /// <inheritdoc cref="Geometry.Apply(ICoordinateSequenceFilter)"/>
+        public override void Apply(ICoordinateSequenceFilter filter)
+        {
+            base.Apply(filter);
+            if (filter.GeometryChanged)
+                Linearized = null;
+        }
+
+        /// <inheritdoc cref="Geometry.Apply(IEntireCoordinateSequenceFilter)"/>
+        public override void Apply(IEntireCoordinateSequenceFilter filter)
+        {
+            base.Apply(filter);
+            if (filter.GeometryChanged)
+                Linearized = null;
         }
     }
 }

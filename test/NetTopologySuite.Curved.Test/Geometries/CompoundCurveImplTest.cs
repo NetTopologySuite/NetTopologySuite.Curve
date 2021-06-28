@@ -11,7 +11,6 @@ namespace NetTopologySuite.Test.Geometries
         public CompoundCurveImplTest(double arcSegmentLength, double lengthTolerance)
             :base(arcSegmentLength, lengthTolerance)
         {
-            
         }
 
         protected override Geometry CreateGeometry()
@@ -20,7 +19,7 @@ namespace NetTopologySuite.Test.Geometries
                 new Coordinate(-2, 0), new Coordinate(0, 2), new Coordinate(2, 0),
                 new Coordinate(4, -2), new Coordinate(6, 0) };
 
-            return Factory.CreateCompoundCurve(new Geometry[]
+            return Factory.CreateCompoundCurve(new Curve[]
             {
                 Factory.CreateCircularString(pts),
                 Factory.CreateLineString(new[] {new Coordinate(6, 0), new Coordinate(10, 0)})
@@ -30,7 +29,7 @@ namespace NetTopologySuite.Test.Geometries
         [Test]
         public override void TestIsEmpty()
         {
-            var geoms = Array.Empty<Geometry>();
+            var geoms = Array.Empty<Curve>();
 
             var cc1 = Factory.CreateCompoundCurve();
             var cc2 = Factory.CreateCompoundCurve(geoms);
@@ -49,17 +48,12 @@ namespace NetTopologySuite.Test.Geometries
 
             // Act
             CompoundCurve cc = null;
-            Assert.That(() => cc = Factory.CreateCompoundCurve(new Geometry[] {cs, ls}), Throws.Nothing);
+            Assert.That(() => cc = Factory.CreateCompoundCurve(new Curve[] {cs, ls}), Throws.Nothing);
 
             Assert.That(cc, Is.Not.Null);
-            Assert.That(cc.IsCoordinate(cs.ControlPoints.GetCoordinate(0)));
-            Assert.That(cc.IsCoordinate(cs.ControlPoints.GetCoordinate(1)));
-            Assert.That(cc.IsCoordinate(cs.ControlPoints.GetCoordinate(2)));
-            Assert.That(cc.IsCoordinate(ls.CoordinateSequence.GetCoordinate(0)));
-            Assert.That(cc.IsCoordinate(ls.CoordinateSequence.GetCoordinate(1)));
 
             Assert.That(cc.Length, Is.EqualTo(cs.Length + ls.Length).Within(LengthTolerance));
-            Assert.That(cc.Flatten().Length / cc.Length, Is.GreaterThanOrEqualTo(0.98));
+            Assert.That(cc.Linearize().Length / cc.Length, Is.GreaterThanOrEqualTo(0.98));
         }
 
         [Test]
@@ -67,7 +61,7 @@ namespace NetTopologySuite.Test.Geometries
         {
             // Not simple
             var ca = new Circle(0, 12, 4).GetCircularArc(180, 90, 0);
-            var geom = Factory.CreateCompoundCurve(new Geometry[]
+            var geom = Factory.CreateCompoundCurve(new Curve[]
             {
                 Factory.CreateCircularString(new[] {ca.P0, ca.P1, ca.P2}),
                 Factory.CreateLineString(new[] {ca.P2, new Coordinate(ca.P0.X, ca.P1.Y)}),
@@ -75,7 +69,7 @@ namespace NetTopologySuite.Test.Geometries
             Assert.That(geom.IsSimple, Is.False);
 
             // Simple
-            geom = Factory.CreateCompoundCurve(new Geometry[]
+            geom = Factory.CreateCompoundCurve(new Curve[]
             {
                 Factory.CreateCircularString(new[] {ca.P0, ca.P1, ca.P2}),
                 Factory.CreateLineString(new[] {ca.P2, new Coordinate(0, 8)}),

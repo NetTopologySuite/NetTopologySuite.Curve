@@ -9,7 +9,7 @@ namespace NetTopologySuite.Geometries
     /// 
     /// </summary>
     [Serializable]
-    public sealed class CircularString : CurveLineString
+    public sealed class CircularString : Curve, ILinearizable<LineString>
     {
         private CoordinateSequence _controlPoints;
         
@@ -18,6 +18,8 @@ namespace NetTopologySuite.Geometries
         {
             _controlPoints = points;
         }
+
+        #region CircularString specific
 
         /// <summary>
         /// Gets a value indicating the control points of this <c>CircularString</c>.
@@ -44,26 +46,270 @@ namespace NetTopologySuite.Geometries
             throw new ArgumentOutOfRangeException(nameof(index), $"Must be less than {NumArcs}");
         }
 
-        /// <inheritdoc cref="FlattenInternal"/>
-        protected override LineString FlattenInternal(double arcSegmentLength)
+        #endregion
+
+        #region ILinearize{T}
+
+        /// <summary>
+        /// Gets a value indicating the default maximum length of arc segments that is
+        /// used when linearizing the curve.
+        /// </summary>
+        private double ArcSegmentLength
         {
+            get => ((CurveGeometryFactory)Factory).ArcSegmentLength;
+        }
+
+        /// <summary>
+        /// Gets a value indicating the linearized geometry
+        /// </summary>
+        private LineString Linearized { get; set; }
+
+        /// <summary>
+        /// Linearize this curve geometry. The default arc segment length is used.
+        /// </summary>
+        /// <returns>A <c>LineString</c></returns>
+        public LineString Linearize()
+        {
+            return Linearize(ArcSegmentLength);
+        }
+
+        /// <summary>
+        /// Linearize this curve geometry using the provided arc segment length.
+        /// </summary>
+        /// <param name="arcSegmentLength">The length of arc segments</param>
+        /// <returns>A flattened geometry</returns>
+        public LineString Linearize(double arcSegmentLength)
+        {
+            if (arcSegmentLength < 0d)
+                throw new ArgumentOutOfRangeException(nameof(arcSegmentLength), "must be positive!");
+
+            var linearized = Linearized;
+            if (arcSegmentLength == ArcSegmentLength && linearized != null)
+                return linearized;
+
             if (ControlPoints.Count == 0)
-                return Factory.CreateLineString();
-
-            var cl = new CoordinateList {ControlPoints.GetCoordinate(0)};
-            var caIt = new CircularArcEnumerator(ControlPoints);
-            var pm = Factory.PrecisionModel;
-            while (caIt.MoveNext())
+                linearized = Factory.CreateLineString();
+            else
             {
-                var ca = caIt.Current;
-                if (ca == null) continue;
 
-                var itms = ca.Flatten(arcSegmentLength, pm);
-                cl.AddRange(itms.Skip(1));
+                var cl = new CoordinateList {ControlPoints.GetCoordinate(0)};
+                var caIt = new CircularArcEnumerator(ControlPoints);
+                var pm = Factory.PrecisionModel;
+                while (caIt.MoveNext())
+                {
+                    var ca = caIt.Current;
+                    if (ca == null) continue;
+
+                    var itms = ca.Flatten(arcSegmentLength, pm);
+                    cl.AddRange(itms.Skip(1));
+                }
+
+                linearized = Factory.CreateLineString(cl.ToCoordinateArray());
             }
 
-            return Factory.CreateLineString(cl.ToCoordinateArray());
+            if (arcSegmentLength == ArcSegmentLength)
+                Linearized = linearized;
+
+            return linearized;
         }
+
+        #endregion
+
+        #region Curve implementation
+
+        /// <inheritdoc cref="Curve.IsClosed"/>
+        public override bool IsClosed
+        {
+            get
+            {
+                if (IsEmpty)
+                    return false;
+                return ControlPoints.First().Equals2D(ControlPoints.Last());
+            }
+        }
+
+        /// <inheritdoc cref="Curve.StartPoint"/>
+        public override Point StartPoint
+        {
+            get
+            {
+                if (IsEmpty)
+                    return null;
+                return Factory.CreatePoint(ControlPoints.First());
+            }
+        }
+
+        /// <inheritdoc cref="Curve.EndPoint"/>
+        public override Point EndPoint
+        {
+            get
+            {
+                if (IsEmpty)
+                    return null;
+                return Factory.CreatePoint(ControlPoints.Last());
+            }
+        }
+
+        #endregion
+
+        #region Geometry overloads
+
+        /// <inheritdoc cref="Geometry.SortIndex"/>
+        protected override SortIndexValue SortIndex
+        {
+            get { return IsRing ? SortIndexValue.LinearRing : SortIndexValue.LineString; }
+        }
+
+        /// <inheritdoc cref="Geometry.Coordinates"/>
+        public override Coordinate[] Coordinates => Linearize().Coordinates;
+
+        /// <inheritdoc cref="Geometry.GetOrdinates"/>
+        public override double[] GetOrdinates(Ordinate ordinate)
+        {
+            var filter = new GetOrdinatesFilter(ordinate, NumPoints);
+            Apply(filter);
+            return filter.Ordinates;
+        }
+
+        /// <inheritdoc cref="Geometry.NumPoints"/>
+        public override int NumPoints => Linearize().NumPoints;
+
+        /// <inheritdoc cref="Geometry.Boundary"/>
+        public override Geometry Boundary => Linearize().Boundary;
+
+        /// <inheritdoc cref="Apply(IGeometryFilter)"/>
+        public override void Apply(IGeometryFilter filter)
+        {
+            Linearize().Apply(filter);
+        }
+
+        /// <inheritdoc cref="Geometry.Apply(IGeometryComponentFilter)"/>
+        public override void Apply(IGeometryComponentFilter filter)
+        {
+            Linearize().Apply(filter);
+        }
+
+        /// <inheritdoc cref="Apply(ICoordinateFilter)"/>
+        public override void Apply(ICoordinateFilter filter)
+        {
+            Linearize().Apply(filter);
+        }
+
+        /// <inheritdoc cref="Geometry.Apply(ICoordinateSequenceFilter)"/>
+        public override void Apply(ICoordinateSequenceFilter filter)
+        {
+            if (_controlPoints.Count == 0)
+                return;
+
+            for (int i = 0; i < _controlPoints.Count; i++)
+            {
+                filter.Filter(_controlPoints, i);
+                if (filter.Done)
+                    break;
+            }
+
+            if (!filter.GeometryChanged)
+                return;
+
+            GeometryChanged();
+            Linearized = null;
+        }
+
+        /// <inheritdoc cref="Geometry.Apply(IEntireCoordinateSequenceFilter)"/>
+        public override void Apply(IEntireCoordinateSequenceFilter filter)
+        {
+            if (_controlPoints.Count == 0)
+                return;
+
+            filter.Filter(_controlPoints);
+
+            if (!filter.GeometryChanged)
+                return;
+
+            GeometryChanged();
+            Linearized = null;
+        }
+
+        /// <inheritdoc cref="Geometry.IsEquivalentClass"/>
+        protected override bool IsEquivalentClass(Geometry other)
+        {
+            return other is ILinearizable<LineString> || other is LineString;
+        }
+
+        /// <inheritdoc cref="Geometry.ConvexHull"/>
+        public override Geometry ConvexHull()
+        {
+            return Linearize().ConvexHull();
+        }
+
+        /// <inheritdoc cref="Geometry.Contains"/>
+        public override bool Contains(Geometry g)
+        {
+            return Linearize().Contains(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Covers"/>
+        public override bool Covers(Geometry g)
+        {
+            return Linearize().Covers(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Crosses"/>
+        public override bool Crosses(Geometry g)
+        {
+            return Linearize().Crosses(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Intersects"/>
+        public override bool Intersects(Geometry g)
+        {
+            return Linearize().Intersects(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Distance"/>
+        public override double Distance(Geometry g)
+        {
+            return Linearize().Distance(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Relate(Geometry,string)"/>
+        public override bool Relate(Geometry g, string intersectionPattern)
+        {
+            return Linearize().Relate(g, intersectionPattern);
+        }
+
+        /// <inheritdoc cref="Geometry.Relate(Geometry)"/>
+        public override IntersectionMatrix Relate(Geometry g)
+        {
+            return Linearize().Relate(g);
+        }
+
+        /// <inheritdoc cref="Geometry.IsSimple"/>
+        public override bool IsSimple
+        {
+            get => Linearize().IsSimple;
+        }
+
+        /// <inheritdoc cref="Geometry.IsValid"/>
+        public override bool IsValid
+        {
+            get => Linearize().IsValid;
+        }
+
+        /// <inheritdoc cref="Geometry.EqualsTopologically"/>
+        public override bool EqualsTopologically(Geometry g)
+        {
+            return Linearize().EqualsTopologically(g);
+        }
+
+        /// <inheritdoc cref="Geometry.Normalize"/>
+        public override void Normalize()
+        {
+            Linearize().Normalize();
+            Apply(new NewLinearizedGeometry<LineString>(Linearized));
+        }
+
+        #endregion
 
         /// <inheritdoc cref="Geometry.Length"/>
         public override double Length
@@ -84,20 +330,20 @@ namespace NetTopologySuite.Geometries
             get => ControlPoints.Count == 0;
         }
 
-        /// <inheritdoc cref="ReverseInternal"/>
+        /// <inheritdoc cref="Geometry.ReverseInternal"/>
         protected override Geometry ReverseInternal()
         {
             var seq = _controlPoints.Reversed();
             return new CircularString(seq, (CurveGeometryFactory)Factory);
         }
 
-        /// <inheritdoc cref="GeometryType"/>
+        /// <inheritdoc cref="Geometry.GeometryType"/>
         public override string GeometryType => CurveGeometry.TypeNameCircularString;
 
-        /// <inheritdoc cref="OgcGeometryType"/>
+        /// <inheritdoc cref="Geometry.OgcGeometryType"/>
         public override OgcGeometryType OgcGeometryType => OgcGeometryType.CircularString;
 
-        /// <inheritdoc cref="InteriorPoint"/>
+        /// <inheritdoc cref="Geometry.InteriorPoint"/>
         public override Point InteriorPoint
         {
             get
@@ -108,7 +354,7 @@ namespace NetTopologySuite.Geometries
             }
         }
 
-        /// <inheritdoc cref="ComputeEnvelopeInternal"/>
+        /// <inheritdoc cref="Geometry.ComputeEnvelopeInternal"/>
         protected override Envelope ComputeEnvelopeInternal()
         {
             var env = new Envelope();
@@ -123,10 +369,10 @@ namespace NetTopologySuite.Geometries
             return env;
         }
 
-        /// <inheritdoc cref="CompareToSameClass(object)"/>
-        protected internal override int CompareToSameClass(object o)
+        /// <inheritdoc cref="Geometry.CompareToSameClass(object)"/>
+        protected override int CompareToSameClass(object o)
         {
-            if (!(o is ICurve))
+            if (!(o is Curve))
                 throw new ArgumentException("Not a Curve", nameof(o));
 
             if (o is CircularString cs)
@@ -142,18 +388,18 @@ namespace NetTopologySuite.Geometries
             }
 
             if (o is CompoundCurve cc)
-                return Flatten().CompareToSameClass(cc.Flatten());
+                return Linearize().CompareTo(cc.Linearize());
 
             if (o is LineString ls)
-                Flatten().CompareToSameClass(ls);
+                return Linearize().CompareTo(ls);
 
             throw new ArgumentException("Invalid type", nameof(o));
         }
 
         /// <inheritdoc cref="CompareToSameClass(object, IComparer{CoordinateSequence})"/>
-        protected internal override int CompareToSameClass(object o, IComparer<CoordinateSequence> comparer)
+        protected override int CompareToSameClass(object o, IComparer<CoordinateSequence> comparer)
         {
-            if (!(o is ICurve))
+            if (!(o is Curve))
                 throw new ArgumentException("Not a Curve", nameof(o));
 
             if (o is CircularString cs)
@@ -169,10 +415,10 @@ namespace NetTopologySuite.Geometries
             }
 
             if (o is CompoundCurve cc)
-                return Flatten().CompareToSameClass(cc.Flatten());
+                return Linearize().CompareTo(cc.Linearize());
 
             if (o is LineString ls)
-                Flatten().CompareToSameClass(ls);
+                return Linearize().CompareTo(ls);
 
             throw new ArgumentException("Invalid type", nameof(o));
         }
@@ -196,7 +442,7 @@ namespace NetTopologySuite.Geometries
                 return true;
             }
 
-            return Flatten().EqualsExact(other, tolerance);
+            return Linearize().EqualsExact(other, tolerance);
         }
 
         /// <inheritdoc cref="CopyInternal"/>
@@ -204,7 +450,7 @@ namespace NetTopologySuite.Geometries
         {
             var seq = ControlPoints.Copy();
             var res = new CircularString(seq, (CurveGeometryFactory)Factory);
-            res.Flattened = (LineString)Flattened?.Copy();
+            res.Linearized = (LineString)Linearized?.Copy();
             return res;
         }
 

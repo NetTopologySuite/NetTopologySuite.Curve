@@ -7,6 +7,9 @@ namespace NetTopologySuite.Geometries
     /// </summary>
     internal class CurveGeometry
     {
+        /// <summary>
+        /// OGC
+        /// </summary>
         public const string TypeNameCircularString = "CircularString";
         public const string TypeNameCompoundCurve = "CompoundCurve";
         public const string TypeNameCurvePolygon = "CurvePolygon";
@@ -14,260 +17,209 @@ namespace NetTopologySuite.Geometries
         public const string TypeNameMultiSurface = "MultiSurface";
     }
 
-    /// <summary>
-    /// Base class for curve geometries
-    /// </summary>
-    /// <typeparam name="T">The type of the flattened geometry</typeparam>
-    [Serializable]
-    public abstract class CurveGeometry<T> : Geometry, ICurveGeometry<T> where T:Geometry
-    {
+    ///// <summary>
+    ///// Base class for curve geometries
+    ///// </summary>
+    ///// <typeparam name="T">The type of the flattened geometry</typeparam>
+    //[Serializable]
+    //public abstract class CurveGeometry<T> : Geometry, ILinearizable<T> where T:Geometry
+    //{
 
-        /// <summary>
-        /// Creates an instance of this class
-        /// </summary>
-        /// <param name="factory">A factory</param>
-        protected CurveGeometry(CurveGeometryFactory factory)
-            : base(factory)
-        {
-        }
+    //    /// <summary>
+    //    /// Creates an instance of this class
+    //    /// </summary>
+    //    /// <param name="factory">A factory</param>
+    //    protected CurveGeometry(CurveGeometryFactory factory)
+    //        : base(factory)
+    //    {
+    //    }
 
-        /// <summary>
-        /// Gets a value indicating the default maximum length of arc segments that is
-        /// used when flattening the curve.
-        /// </summary>
-        public double ArcSegmentLength
-        {
-            get => ((CurveGeometryFactory) Factory).ArcSegmentLength;
-        }
+    //    /// <summary>
+    //    /// Gets a value indicating the default maximum length of arc segments that is
+    //    /// used when flattening the curve.
+    //    /// </summary>
+    //    protected double ArcSegmentLength
+    //    {
+    //        get => ((CurveGeometryFactory) Factory).ArcSegmentLength;
+    //    }
 
-        /// <summary>
-        /// Gets a value indicating the flattened geometry
-        /// </summary>
-        protected T Flattened { get; set; }
+    //    /// <summary>
+    //    /// Gets a value indicating the flattened geometry
+    //    /// </summary>
+    //    protected T Linearized { get; set; }
 
-        /// <summary>
-        /// Flatten this curve geometry. The arc segment length used is <see cref="ArcSegmentLength"/>.
-        /// </summary>
-        /// <returns>A <c>LineString</c></returns>
-        public T Flatten()
-        {
-            return Flatten(ArcSegmentLength);
-        }
+    //    /// <summary>
+    //    /// Flatten this curve geometry. The arc segment length used is <see cref="ArcSegmentLength"/>.
+    //    /// </summary>
+    //    /// <returns>A <c>LineString</c></returns>
+    //    public T Linearize()
+    //    {
+    //        return Linearize(ArcSegmentLength);
+    //    }
 
-        /// <summary>
-        /// Flatten this curve geometry using the provided arc segment length.
-        /// </summary>
-        /// <param name="arcSegmentLength">The length of arc segments</param>
-        /// <returns>A flattened geometry</returns>
-        public T Flatten(double arcSegmentLength)
-        {
-            if (arcSegmentLength < 0d)
-                throw new ArgumentOutOfRangeException(nameof(arcSegmentLength), "must be positive!");
+    //    /// <summary>
+    //    /// Flatten this curve geometry using the provided arc segment length.
+    //    /// </summary>
+    //    /// <param name="arcSegmentLength">The length of arc segments</param>
+    //    /// <returns>A flattened geometry</returns>
+    //    public T Linearize(double arcSegmentLength)
+    //    {
+    //        if (arcSegmentLength < 0d)
+    //            throw new ArgumentOutOfRangeException(nameof(arcSegmentLength), "must be positive!");
 
-            if (arcSegmentLength == ArcSegmentLength)
-                return Flattened ?? (Flattened = FlattenInternal(ArcSegmentLength));
+    //        if (arcSegmentLength == ArcSegmentLength)
+    //            return Linearized ?? (Linearized = LinearizeInternal(ArcSegmentLength));
 
-            return FlattenInternal(arcSegmentLength);
-        }
+    //        return LinearizeInternal(arcSegmentLength);
+    //    }
 
-        /// <summary>
-        /// Actual implementation of the flatten procedure
-        /// </summary>
-        /// <param name="arcSegmentLength">The maximum length of arc segments</param>
-        /// <returns>A flattened geometry</returns>
-        protected abstract T FlattenInternal(double arcSegmentLength);
+    //    /// <summary>
+    //    /// Actual implementation of the flatten procedure
+    //    /// </summary>
+    //    /// <param name="arcSegmentLength">The maximum length of arc segments</param>
+    //    /// <returns>A flattened geometry</returns>
+    //    protected abstract T LinearizeInternal(double arcSegmentLength);
 
-        Geometry ICurveGeometry.Flatten()
-        {
-            return Flatten();
-        }
+    //    /// <inheritdoc cref="Geometry.Centroid"/>
+    //    public override Point Centroid => Linearize().Centroid;
 
-        /// <inheritdoc cref="Centroid"/>
-        public override Point Centroid => Flatten().Centroid;
+    //    /// <inheritdoc cref="Geometry.InteriorPoint"/>
+    //    public override Point InteriorPoint => Linearize().InteriorPoint;
 
-        /// <inheritdoc cref="InteriorPoint"/>
-        public override Point InteriorPoint => Flatten().InteriorPoint;
+    //    /// <inheritdoc cref="Geometry.Coordinates"/>
+    //    public sealed override Coordinate[] Coordinates => Linearize().Coordinates;
 
-        /// <summary>
-        /// Returns an array containing the values of all the vertices for
-        /// this geometry.
-        /// </summary>
-        /// <remarks>
-        /// If the geometry is a composite, the array will contain all the vertices
-        /// for the components, in the order in which the components occur in the geometry.
-        /// <para>
-        /// In general, the array cannot be assumed to be the actual internal
-        /// storage for the vertices.  Thus modifying the array
-        /// may not modify the geometry itself.
-        /// Use the <see cref="Geometries.CoordinateSequence.SetOrdinate(int, int, double)"/> method
-        /// (possibly on the components) to modify the underlying data.
-        /// If the coordinates are modified,
-        /// <see cref="Geometry.GeometryChanged"/> must be called afterwards.
-        /// </para>
-        /// </remarks>
-        /// <returns>The vertices of this <c>Geometry</c>.</returns>
-        /// <seealso cref="Geometry.GeometryChanged"/>
-        /// <seealso cref="Geometries.CoordinateSequence.SetOrdinate(int, int, double)"/>
-        /// <seealso cref="Geometries.CoordinateSequence.SetOrdinate(int, Ordinate, double)"/>
-        public sealed override Coordinate[] Coordinates => Flatten().Coordinates;
+    //    /// <inheritdoc cref="Geometry.GetOrdinates"/>
+    //    public sealed override double[] GetOrdinates(Ordinate ordinate)
+    //    {
+    //        var filter = new GetOrdinatesFilter(ordinate, NumPoints);
+    //        Apply(filter);
+    //        return filter.Ordinates;
+    //    }
 
-        /// <inheritdoc cref="Geometry.GetOrdinates"/>
-        public sealed override double[] GetOrdinates(Ordinate ordinate)
-        {
-            var filter = new GetOrdinatesFilter(ordinate, NumPoints);
-            Apply(filter);
-            return filter.Ordinates;
-        }
+    //    /// <inheritdoc cref="Geometry.NumPoints"/>
+    //    public sealed override int NumPoints => Linearize().NumPoints;
 
-        /// <inheritdoc cref="Geometry.NumPoints"/>
-        public sealed override int NumPoints => Flatten().NumPoints;
+    //    /// <inheritdoc cref="Geometry.Boundary"/>
+    //    public sealed override Geometry Boundary => Linearize().Boundary;
 
-        ///// <summary>
-        ///// Returns the length of this <c>LineString</c>
-        ///// </summary>
-        ///// <returns>The length of the polygon.</returns>
-        //public override double Length => Flatten().Length;
+    //    /// <inheritdoc cref="Apply(IGeometryFilter)"/>
+    //    public override void Apply(IGeometryFilter filter)
+    //    {
+    //        Linearize().Apply(filter);
+    //    }
 
-        /// <summary>
-        /// Returns the boundary, or an empty geometry of appropriate dimension
-        /// if this <c>Geometry</c> is empty.
-        /// For a discussion of this function, see the OpenGIS Simple
-        /// Features Specification. As stated in SFS Section 2.1.13.1, "the boundary
-        /// of a Geometry is a set of Geometries of the next lower dimension."
-        /// </summary>
-        /// <returns>The closure of the combinatorial boundary of this <c>Geometry</c>.</returns>
-        public sealed override Geometry Boundary => Flatten().Boundary;
+    //    /// <inheritdoc cref="Geometry.Apply(IGeometryComponentFilter)"/>
+    //    public override void Apply(IGeometryComponentFilter filter)
+    //    {
+    //        Linearize().Apply(filter);
+    //    }
 
-        /// <inheritdoc cref="Apply(IGeometryFilter)"/>
-        public override void Apply(IGeometryFilter filter)
-        {
-            Flatten().Apply(filter);
-        }
+    //    /// <inheritdoc cref="Apply(ICoordinateFilter)"/>
+    //    public override void Apply(ICoordinateFilter filter)
+    //    {
+    //        Linearize().Apply(filter);
+    //    }
 
-        /// <inheritdoc cref="Apply(IGeometryComponentFilter)"/>
-        public override void Apply(IGeometryComponentFilter filter)
-        {
-            Flatten().Apply(filter);
-        }
+    //    /// <inheritdoc cref="Geometry.Apply(ICoordinateSequenceFilter)"/>
+    //    public override void Apply(ICoordinateSequenceFilter filter)
+    //    {
+    //        Linearize().Apply(filter);
+    //        if (filter.GeometryChanged)
+    //        {
+    //            Apply(new NewLinearizedGeometry<T>(Linearized));
+    //            GeometryChanged();
+    //        }
+    //    }
 
-        /// <inheritdoc cref="Apply(ICoordinateFilter)"/>
-        public override void Apply(ICoordinateFilter filter)
-        {
-            Flatten().Apply(filter);
-        }
+    //    /// <inheritdoc cref="Geometry.Apply(IEntireCoordinateSequenceFilter)"/>
+    //    public override void Apply(IEntireCoordinateSequenceFilter filter)
+    //    {
+    //        Linearize().Apply(filter);
+    //        if (filter.GeometryChanged)
+    //        {
+    //            Apply(new NewLinearizedGeometry<T>(Linearized));
+    //            GeometryChanged();
+    //        }
+    //    }
 
-        private class NewFlattenedGeometry : IGeometryComponentFilter
-        {
-            public NewFlattenedGeometry(T flattened)
-            {
-                Flattened = flattened;
-            }
+    //    /// <inheritdoc cref="Geometry.IsEquivalentClass"/>
+    //    protected sealed override bool IsEquivalentClass(Geometry other)
+    //    {
+    //        return other is CurveGeometry<T> || other is T;
+    //    }
 
-            private T Flattened { get; }
+    //    /// <inheritdoc cref="Geometry.ConvexHull"/>
+    //    public override Geometry ConvexHull()
+    //    {
+    //        return Linearize().ConvexHull();
+    //    }
 
-            public void Filter(Geometry geom)
-            {
-                if (geom is CurveGeometry<T> curve)
-                {
-                    //TODO 
-                }
-                geom.GeometryChangedAction();
-            }
-        }
+    //    /// <inheritdoc cref="Geometry.Contains"/>
+    //    public override bool Contains(Geometry g)
+    //    {
+    //        return Linearize().Contains(g);
+    //    }
 
-        /// <inheritdoc cref="Apply(ICoordinateSequenceFilter)"/>
-        public override void Apply(ICoordinateSequenceFilter filter)
-        {
-            Flatten().Apply(filter);
-            if (filter.GeometryChanged)
-                Apply(new NewFlattenedGeometry(Flattened));
-        }
+    //    /// <inheritdoc cref="Geometry.Covers"/>
+    //    public override bool Covers(Geometry g)
+    //    {
+    //        return Linearize().Covers(g);
+    //    }
 
-        /// <inheritdoc cref="Apply(IEntireCoordinateSequenceFilter)"/>
-        public override void Apply(IEntireCoordinateSequenceFilter filter)
-        {
-            Flatten().Apply(filter);
-            if (filter.GeometryChanged)
-                GeometryChanged();
-        }
+    //    /// <inheritdoc cref="Geometry.Crosses"/>
+    //    public override bool Crosses(Geometry g)
+    //    {
+    //        return Linearize().Crosses(g);
+    //    }
 
-        /// <inheritdoc cref="IsEquivalentClass"/>
-        protected sealed override bool IsEquivalentClass(Geometry other)
-        {
-            return other is CurveGeometry<T> || other is T;
-        }
+    //    /// <inheritdoc cref="Geometry.Intersects"/>
+    //    public override bool Intersects(Geometry g)
+    //    {
+    //        return Linearize().Intersects(g);
+    //    }
 
-        /// <inheritdoc cref="ConvexHull"/>
-        public override Geometry ConvexHull()
-        {
-            return Flatten().ConvexHull();
-        }
+    //    /// <inheritdoc cref="Geometry.Distance"/>
+    //    public override double Distance(Geometry g)
+    //    {
+    //        return Linearize().Distance(g);
+    //    }
 
-        /// <inheritdoc cref="Contains"/>
-        public override bool Contains(Geometry g)
-        {
-            return Flatten().Contains(g);
-        }
+    //    /// <inheritdoc cref="Geometry.Relate(Geometry,string)"/>
+    //    public override bool Relate(Geometry g, string intersectionPattern)
+    //    {
+    //        return Linearize().Relate(g, intersectionPattern);
+    //    }
 
-        /// <inheritdoc cref="Covers"/>
-        public override bool Covers(Geometry g)
-        {
-            return Flatten().Covers(g);
-        }
+    //    /// <inheritdoc cref="Geometry.Relate(Geometry)"/>
+    //    public override IntersectionMatrix Relate(Geometry g)
+    //    {
+    //        return Linearize().Relate(g);
+    //    }
 
-        /// <inheritdoc cref="Crosses"/>
-        public override bool Crosses(Geometry g)
-        {
-            return Flatten().Crosses(g);
-        }
+    //    /// <inheritdoc cref="Geometry.IsSimple"/>
+    //    public override bool IsSimple
+    //    {
+    //        get => Linearize().IsSimple;
+    //    }
 
-        /// <inheritdoc cref="Intersects"/>
-        public override bool Intersects(Geometry g)
-        {
-            return Flatten().Intersects(g);
-        }
+    //    /// <inheritdoc cref="Geometry.IsValid"/>
+    //    public override bool IsValid
+    //    {
+    //        get => Linearize().IsValid;
+    //    }
 
-        /// <inheritdoc cref="Distance"/>
-        public override double Distance(Geometry g)
-        {
-            return Flatten().Distance(g);
-        }
+    //    /// <inheritdoc cref="Geometry.EqualsTopologically"/>
+    //    public override bool EqualsTopologically(Geometry g)
+    //    {
+    //        return Linearize().EqualsTopologically(g);
+    //    }
 
-        /// <inheritdoc cref="Relate(Geometry,string)"/>
-        public override bool Relate(Geometry g, string intersectionPattern)
-        {
-            return Flatten().Relate(g, intersectionPattern);
-        }
-
-        /// <inheritdoc cref="Relate(Geometry)"/>
-        public override IntersectionMatrix Relate(Geometry g)
-        {
-            return Flatten().Relate(g);
-        }
-
-        /// <inheritdoc cref="IsSimple"/>
-        public override bool IsSimple
-        {
-            get => Flatten().IsSimple;
-        }
-
-        /// <inheritdoc cref="IsValid"/>
-        public override bool IsValid
-        {
-            get => Flatten().IsValid;
-        }
-
-        /// <inheritdoc cref="EqualsTopologically"/>
-        public override bool EqualsTopologically(Geometry g)
-        {
-            return Flatten().EqualsTopologically(g);
-        }
-
-        /// <inheritdoc cref="Normalize"/>
-        public override void Normalize()
-        {
-            Flatten().Normalize();
-            Apply(new NewFlattenedGeometry(Flattened));
-        }
-    }
+    //    /// <inheritdoc cref="Geometry.Normalize"/>
+    //    public override void Normalize()
+    //    {
+    //        Linearize().Normalize();
+    //        Apply(new NewLinearizedGeometry<T>(Linearized));
+    //    }
+    //}
 }

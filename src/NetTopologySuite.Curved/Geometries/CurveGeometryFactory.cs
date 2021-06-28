@@ -81,7 +81,7 @@ namespace NetTopologySuite.Geometries
         /// Creates an empty <c>COMPOUNDCURVE</c> geometry
         /// </summary>
         /// <returns>An empty <c>COMPOUNDCURVE</c> geometry</returns>
-        public CompoundCurve CreateCompoundCurve() => CreateCompoundCurve(Array.Empty<Geometry>());
+        public CompoundCurve CreateCompoundCurve() => CreateCompoundCurve(Array.Empty<Curve>());
 
         /// <summary>
         /// Creates a <c>COMPOUNDCURVE</c> geometry sewed together using the provided .
@@ -89,11 +89,11 @@ namespace NetTopologySuite.Geometries
         /// the connectivity between them must be ensured.
         /// </summary>
         /// <returns>A <c>COMPOUNDCURVE</c> geometry</returns>
-        public CompoundCurve CreateCompoundCurve(Geometry[] linealGeometries)
+        public CompoundCurve CreateCompoundCurve(Curve[] linealGeometries)
         {
             // Ensure linealGeometries is not null
             if (linealGeometries == null)
-                linealGeometries = new Geometry[0];
+                linealGeometries = Array.Empty<Curve>();
 
             Coordinate last = null;
             // Check for invalid types in linealGeometries
@@ -143,9 +143,9 @@ namespace NetTopologySuite.Geometries
         /// </summary>
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
         /// <returns>An empty <c>CURVEPOLYGON</c> geometry</returns>
-        public CurvePolygon CreateCurvePolygon(Geometry exteriorRing)
+        public CurvePolygon CreateCurvePolygon(Curve exteriorRing)
         {
-            return CreateCurvePolygon(exteriorRing, Array.Empty<Geometry>());
+            return CreateCurvePolygon(exteriorRing, Array.Empty<Curve>());
         }
 
         /// <summary>
@@ -155,24 +155,24 @@ namespace NetTopologySuite.Geometries
         /// <param name="exteriorRing">The geometry defining the exterior ring.</param>
         /// <param name="interiorRings">An array of geometries defining the interior rings.</param>
         /// <returns>An empty <c>CURVEPOLYGON</c> geometry</returns>
-        public CurvePolygon CreateCurvePolygon(Geometry exteriorRing, Geometry[] interiorRings)
+        public CurvePolygon CreateCurvePolygon(Curve exteriorRing, Curve[] interiorRings)
         {
             if (exteriorRing == null)
                 exteriorRing = CreateLinearRing();
 
-            if (!(exteriorRing is ICurve exteriorRingCurve))
+            if (!(exteriorRing is Curve exteriorRingCurve))
                 throw new ArgumentException("exteriorRing is not a ICurve", nameof(exteriorRing));
 
             if (!exteriorRingCurve.IsRing)
                 throw new ArgumentException("exteriorRing does not form a valid ring", nameof(exteriorRing));
 
             if (interiorRings == null)
-                interiorRings = Array.Empty<Geometry>();
+                interiorRings = Array.Empty<Curve>();
 
             var extEnv = exteriorRing.EnvelopeInternal;
             for (int i = 0; i < interiorRings.Length; i++)
             {
-                if (!(interiorRings[i] is ICurve interiorRingCurve))
+                if (!(interiorRings[i] is Curve interiorRingCurve))
                     throw new ArgumentException($"interiorRing[{i}] is not a ICurve", nameof(exteriorRing));
                 if (!interiorRingCurve.IsRing)
                     throw new ArgumentException($"interiorRing[{i}] does not form a valid ring", nameof(interiorRings));
@@ -195,7 +195,7 @@ namespace NetTopologySuite.Geometries
         /// <summary>
         /// Creates a <c>MULTICURVE</c> geometry
         /// </summary>
-        /// <param name="geometries">An array of <see cref="ICurve"/> geometries</param>
+        /// <param name="geometries">An array of <see cref="Curve"/> geometries</param>
         /// <returns>A <c>MULTICURVE</c> geometry</returns>
         public MultiCurve CreateMultiCurve(params Geometry[] geometries)
         {
@@ -247,7 +247,7 @@ namespace NetTopologySuite.Geometries
                     hasGeometryCollection = true;
                 if (geom is ISurface)
                     numSurface++;
-                if (geom is ICurve)
+                if (geom is Curve)
                     numCurve++;
             }
 
@@ -280,7 +280,7 @@ namespace NetTopologySuite.Geometries
                     return CreateMultiSurface(geoms.ToArray());
                 if (geom0 is LineString)
                     return CreateMultiLineString(ToLineStringArray(geoms));
-                if (geom0 is ICurve)
+                if (geom0 is Curve)
                     return CreateMultiCurve(geoms.ToArray());
                 if (geom0 is Point)
                     return CreateMultiPoint(ToPointArray(geoms));

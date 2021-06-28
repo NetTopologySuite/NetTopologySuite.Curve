@@ -3,10 +3,15 @@ using NetTopologySuite.Operation.OverlayNG;
 
 namespace NetTopologySuite.Geometries
 {
-    public class CurveGeometryOverlay
+    /// <summary>
+    /// A class defining how to perform overlay operations on curve geometries.
+    /// </summary>
+    internal static class CurveGeometryOverlay
     {
+        /// <summary>
+        /// Gives access to the geometry overlay operations for curve geometries.
+        /// </summary>
         public static GeometryOverlay CurveV2 => new CurveGeometryOverlayV2();
-
 
         private sealed class CurveGeometryOverlayV2 : GeometryOverlay
         {
@@ -46,8 +51,11 @@ namespace NetTopologySuite.Geometries
                         case GeometryCollection _:
                             geometries[i] = Flatten(testGeom);
                             break;
-                        case ICurveGeometry curve:
-                            geometries[i] = curve.Flatten();
+                        case ILinearizable<LineString> curve:
+                            geometries[i] = curve.Linearize();
+                            break;
+                        case ILinearizable<Polygon> surface:
+                            geometries[i] = surface.Linearize();
                             break;
                         default:
                             geometries[i] = testGeom;
@@ -74,7 +82,8 @@ namespace NetTopologySuite.Geometries
                             if (HasCurve(testGeom))
                                 return true;
                             break;
-                        case ICurveGeometry _:
+                        case ILinearizable<LineString> _:
+                        case ILinearizable<Polygon> _:
                             return true;
                     }
                 }
