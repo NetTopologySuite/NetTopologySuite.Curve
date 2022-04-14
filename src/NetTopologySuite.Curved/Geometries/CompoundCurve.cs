@@ -125,7 +125,7 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="Curve.IsClosed"/>
         public override bool IsClosed => Linearize().IsClosed;
 
-        
+
         /// <inheritdoc cref="Curve.StartPoint"/>
         public override Point StartPoint
         {
@@ -236,7 +236,7 @@ namespace NetTopologySuite.Geometries
         /// <inheritdoc cref="Geometry.IsEquivalentClass"/>
         protected override bool IsEquivalentClass(Geometry other)
         {
-            return other is ILinearizable<LineString> || other is LineString;
+            return other is CompoundCurve;
         }
 
         /// <inheritdoc cref="Geometry.ConvexHull"/>
@@ -322,6 +322,10 @@ namespace NetTopologySuite.Geometries
                 return false;
 
             var cc = (CompoundCurve)other;
+
+            if (cc.Curves.Count != Curves.Count)
+                return false;
+
             for (int i = 0; i < Curves.Count; i++)
             {
                 if (!Curves[i].EqualsExact(cc.Curves[i], tolerance))
